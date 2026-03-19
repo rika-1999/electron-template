@@ -1,3 +1,5 @@
+import type { Channel } from '@/utils/channel'
+
 export type ViewType = 'embedded' | 'detached' | 'background'
 
 export interface ViewState {
@@ -13,9 +15,15 @@ export interface ViewState {
 export interface ViewOptions {
   url: string
   type?: ViewType
-  parentWindow?: Electron.BrowserWindow
   bounds?: Electron.Rectangle
-  windowOptions?: Electron.BaseWindowConstructorOptions
+  channel?: Channel
+  preload?: string
+  id?: string
+}
+
+export interface ManagedViewEventMap {
+  'state-changed': (state: ViewState) => void
+  'ready': () => void
 }
 
 export interface ViewEventMap {

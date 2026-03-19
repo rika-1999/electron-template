@@ -1,7 +1,7 @@
 import type { PluginOption } from 'vite'
 
 export function sourceFilePlugin(): PluginOption {
-  const cwd = process.cwd().replace(/\\/g, '/')
+  const cwd = process.cwd().replace(/\\/g, '/') + '/src'
 
   return {
     name: 'vite:source-file-inject',

@@ -1,16 +1,27 @@
-import { app, BrowserWindow } from 'electron'
-import { initLog } from '@/utils/log'
+import { app } from 'electron'
+import { logManager } from '@/utils/log'
 import { initUpdater } from './updater'
-import { createWindow } from './window'
+import { appTray } from './tray'
 import { registerUpdaterIpc } from './ipc'
-import { viewManager } from './view-manager'
+import { createMainWindow } from './main-window'
+import { serialize } from '@/utils/serialize'
 
-initLog()
+logManager.initLog({
+  level: app.isPackaged ? 'info' : 'debug',
+  maxSize: 5 * 1024 * 1024,
+  format: ({ ctx, params, level, timestamp }) => {
+    const time = timestamp.toISOString()
+    const source = ctx.source ? `[${ctx.source}]` : ''
+    const ctxEntries = Object.entries(ctx).filter(([k]) => k !== 'source')
+    const ctxStr = ctxEntries.map(([k, v]) => `[${k}:${String(v)}]`).join(' ')
+    const msg = params.map(p => serialize(p)).join(' ')
+    return `${time} [${level}]${source}${ctxStr} ${msg}`
+  },
+})
 
-export { viewManager }
-
-app.whenReady().then(() => {
-  const win = createWindow()
+app.whenReady().then(async () => {
+  await createMainWindow()
+  appTray.create()
 
   registerUpdaterIpc()
 
@@ -21,10 +32,8 @@ app.whenReady().then(() => {
     checkInterval: parseInt(process.env.UPDATE_CHECK_INTERVAL ?? '3600000', 10),
   })
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
-    }
+  app.on('activate', async () => {
+    await createMainWindow()
   })
 })
 

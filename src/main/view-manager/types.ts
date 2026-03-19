@@ -1,16 +1,19 @@
 import type { WebContentsView, BrowserWindow, BaseWindow } from 'electron'
-import type { ChannelInstance } from '@/utils/channel'
-import type { ViewState, ViewType } from '@/shared/view'
+import type { Channel } from '@/utils/channel'
+import type { ViewState, ViewType, ManagedViewEventMap } from '@/shared/view'
 
 export interface ManagedView {
-  id: string
-  type: ViewType
-  url: string
-  webContentsView: WebContentsView
-  channel: ChannelInstance
+  readonly id: string
+  readonly type: ViewType
+  readonly url: string
+  readonly webContentsView: WebContentsView
+  readonly channel: Channel
   hostWindow: BrowserWindow | BaseWindow | null
   state: ViewState
+  on<K extends keyof ManagedViewEventMap>(event: K, listener: ManagedViewEventMap[K]): void
+  off<K extends keyof ManagedViewEventMap>(event: K, listener: ManagedViewEventMap[K]): void
+  once<K extends keyof ManagedViewEventMap>(event: K, listener: ManagedViewEventMap[K]): void
+  attachTo(window: BrowserWindow | BaseWindow, bounds?: Electron.Rectangle): void
+  detach(): void
+  toggleDevTools(): void
 }
-
-export type Handler = (payload: unknown) => Promise<unknown> | unknown
-export type AnyMessageHandler = (viewId: string, payload: unknown) => Promise<unknown> | unknown

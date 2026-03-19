@@ -1,55 +1,51 @@
-import { BaseWindow } from 'electron'
 import { TypedEmitter } from '@/utils/typed-emitter'
 import { ManagedView } from './managed-view'
 import type { ViewOptions, ViewState, ViewEventMap } from '@/shared/view'
-import type { Handler, AnyMessageHandler } from './types'
+import type { Handler, AnyRequestHandler, ChannelCenter, ChannelAPI } from '@/shared/channel'
 
 function generateViewId(): string {
   return `view-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-export class ViewManager extends TypedEmitter<ViewEventMap> {
+export class ViewManager extends TypedEmitter<ViewEventMap> implements ChannelCenter {
   private views = new Map<string, ManagedView>()
-  private anyMessageHandlers = new Map<string, AnyMessageHandler>()
+  private anyRequestHandlers = new Map<string, AnyRequestHandler>()
 
   // ─── View lifecycle ────────────────────────────────────────────────────
 
   async createView(options: ViewOptions): Promise<string> {
-    const id = generateViewId()
+    const id = options.id ?? generateViewId()
+
+    // Validate ID uniqueness
+    if (this.views.has(id)) {
+      throw new Error(`View with id '${id}' already exists`)
+    }
+
     const type = options.type ?? 'embedded'
 
-    const view = new ManagedView(
-      id,
-      { url: options.url, type },
-      () => this.emit('view-state-changed', id, view.state),
-      () => this.emit('view-ready', id),
-    )
+    const view = new ManagedView(id, {
+      url: options.url,
+      type,
+      channel: options.channel,
+      preload: options.preload,
+    })
+
+    view.on('state-changed', (state) => {
+      this.emit('view-state-changed', id, state)
+    })
+    view.on('ready', () => {
+      this.emit('view-ready', id)
+    })
 
     this.views.set(id, view)
-
-    // Attach to window based on type
-    if (type === 'embedded' && options.parentWindow) {
-      ;(options.parentWindow.contentView as { addChildView: (v: unknown) => void }).addChildView(
-        view.webContentsView,
-      )
-      view.hostWindow = options.parentWindow
-      if (options.bounds) {
-        view.webContentsView.setBounds(options.bounds)
-      }
-    } else if (type === 'detached') {
-      const baseWin = new BaseWindow(options.windowOptions ?? {})
-      baseWin.setContentView(view.webContentsView)
-      view.hostWindow = baseWin
-    }
-    // background: no window attachment
 
     // Load URL and init channel
     await view.load()
     await view.initChannel()
 
-    // Apply any registered onAnyMessage handlers
-    for (const [method, handler] of this.anyMessageHandlers) {
-      view.channel.on(method, (payload: unknown) => handler(id, payload))
+    // Apply any registered onAnyRequest handlers
+    for (const [method, handler] of this.anyRequestHandlers) {
+      view.channel.onRequest(method, (payload: unknown) => handler(id, payload))
     }
 
     this.emit('view-created', id, view.state)
@@ -59,16 +55,6 @@ export class ViewManager extends TypedEmitter<ViewEventMap> {
   destroyView(viewId: string): void {
     const view = this.views.get(viewId)
     if (!view) return
-
-    // Remove from host window
-    if (view.hostWindow && view.type === 'embedded') {
-      const contentView = view.hostWindow.contentView as {
-        removeChildView?: (v: unknown) => void
-      }
-      contentView.removeChildView?.(view.webContentsView)
-    } else if (view.hostWindow && view.type === 'detached') {
-      ;(view.hostWindow as BaseWindow).destroy()
-    }
 
     view.destroy()
     this.views.delete(viewId)
@@ -89,89 +75,66 @@ export class ViewManager extends TypedEmitter<ViewEventMap> {
     return Array.from(this.views.values()).map((v) => v.state)
   }
 
-  // ─── Window operations ─────────────────────────────────────────────────
-
-  attachToWindow(
-    viewId: string,
-    window: Electron.BrowserWindow,
-    bounds?: Electron.Rectangle,
-  ): void {
-    const view = this.views.get(viewId)
-    if (!view) return
-
-    // Remove from current host if embedded
-    if (view.hostWindow && view.type === 'embedded') {
-      const contentView = view.hostWindow.contentView as {
-        removeChildView?: (v: unknown) => void
-      }
-      contentView.removeChildView?.(view.webContentsView)
-    }
-
-    ;(window.contentView as { addChildView: (v: unknown) => void }).addChildView(
-      view.webContentsView,
-    )
-    view.hostWindow = window
-    view.type = 'embedded'
-
-    if (bounds) {
-      view.webContentsView.setBounds(bounds)
-    }
-
-    this.emit('view-state-changed', viewId, view.state)
-  }
-
-  detachToWindow(
-    viewId: string,
-    windowOptions?: Electron.BaseWindowConstructorOptions,
-  ): BaseWindow | undefined {
-    const view = this.views.get(viewId)
-    if (!view) return undefined
-
-    // Remove from current host if embedded
-    if (view.hostWindow && view.type === 'embedded') {
-      const contentView = view.hostWindow.contentView as {
-        removeChildView?: (v: unknown) => void
-      }
-      contentView.removeChildView?.(view.webContentsView)
-    }
-
-    const baseWin = new BaseWindow(windowOptions ?? {})
-    baseWin.setContentView(view.webContentsView)
-    view.hostWindow = baseWin
-    view.type = 'detached'
-
-    this.emit('view-state-changed', viewId, view.state)
-    return baseWin
-  }
-
   // ─── Built-in channel ──────────────────────────────────────────────────
 
-  async requestTo(viewId: string, method: string, payload?: unknown): Promise<unknown> {
+  async requestTo(
+    viewId: string,
+    method: string,
+    payload?: unknown,
+    timeout?: number,
+  ): Promise<unknown> {
     const view = this.views.get(viewId)
     if (!view) throw new Error(`View not found: ${viewId}`)
-    return view.channel.request(method, payload)
+    return view.channel.request(method, payload, timeout)
   }
 
-  async broadcast(method: string, payload?: unknown): Promise<void> {
+  async broadcast(method: string, payload?: unknown, timeout?: number): Promise<void> {
     const promises: Promise<unknown>[] = []
     for (const view of this.views.values()) {
-      promises.push(view.channel.request(method, payload))
+      promises.push(view.channel.request(method, payload, timeout))
     }
     await Promise.allSettled(promises)
   }
 
-  onMessage(viewId: string, method: string, handler: Handler): void {
+  onRequest(viewId: string, method: string, handler: Handler): void {
     const view = this.views.get(viewId)
     if (!view) return
-    view.channel.on(method, handler)
+    view.channel.onRequest(method, handler)
   }
 
-  onAnyMessage(method: string, handler: AnyMessageHandler): void {
-    this.anyMessageHandlers.set(method, handler)
+  onAnyRequest(method: string, handler: AnyRequestHandler): void {
+    this.anyRequestHandlers.set(method, handler)
     // Apply to all existing views
     for (const [id, view] of this.views) {
-      view.channel.on(method, (payload: unknown) => handler(id, payload))
+      view.channel.onRequest(method, (payload: unknown) => handler(id, payload))
     }
+  }
+
+  offAnyRequest(method: string): void {
+    this.anyRequestHandlers.delete(method)
+    // Remove from all existing views
+    for (const view of this.views.values()) {
+      view.channel.offRequest(method)
+    }
+  }
+
+  getAllChannels(): Map<string, ChannelAPI> {
+    const channels = new Map<string, ChannelAPI>()
+    for (const [id, view] of this.views) {
+      channels.set(id, view.channel)
+    }
+    return channels
+  }
+
+  // ─── Cleanup ─────────────────────────────────────────────────────────────
+
+  /** Destroy all views and reset internal state. */
+  destroy(): void {
+    for (const viewId of this.views.keys()) {
+      this.destroyView(viewId)
+    }
+    this.anyRequestHandlers.clear()
+    this.removeAllListeners()
   }
 }
 

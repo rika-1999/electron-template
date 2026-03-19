@@ -1,6 +1,8 @@
 import { autoUpdater } from 'electron-updater'
-import { log } from '@/utils/log'
+import { logger } from '@/utils/log'
 import type { UpdateConfig, UpdateProgressInfo } from './types'
+
+const log = logger(__SOURCE_FILE__)
 
 function createUpdateManager(config: UpdateConfig) {
   const { updateServerURL, autoCheckOnStartup, autoDownload, checkInterval } = config

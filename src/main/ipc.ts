@@ -3,11 +3,11 @@ import { channel } from '@/utils/channel'
 import { getUpdater } from './updater'
 
 export function registerUpdaterIpc(): void {
-  channel.on('updater:checkForUpdates', () => {
+  channel.onRequest('updater:checkForUpdates', () => {
     return getUpdater()?.checkForUpdates()
   })
 
-  channel.on('updater:quitAndInstall', () => {
+  channel.onRequest('updater:quitAndInstall', () => {
     getUpdater()?.quitAndInstall()
   })
 

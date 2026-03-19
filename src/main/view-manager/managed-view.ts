@@ -1,58 +1,66 @@
 import { WebContentsView } from 'electron'
-import { ChannelInstance } from '@/utils/channel'
-import type { ViewState, ViewType } from '@/shared/view'
+import { TypedEmitter } from '@/utils/typed-emitter'
+import { Channel } from '@/utils/channel'
+import type { ViewState, ViewType, ManagedViewEventMap } from '@/shared/view'
 import type { ManagedView as IManagedView } from './types'
-import { paths } from '../utils/paths'
 
-export class ManagedView implements IManagedView {
+export class ManagedView extends TypedEmitter<ManagedViewEventMap> implements IManagedView {
   readonly id: string
-  type: ViewType
-  url: string
+  readonly type: ViewType
+  readonly url: string
   readonly webContentsView: WebContentsView
-  readonly channel: ChannelInstance
+  readonly channel: Channel
   hostWindow: Electron.BrowserWindow | Electron.BaseWindow | null = null
 
   private _loaded = false
-  private _onStateChanged: () => void
-  private _onReady: () => void
+  private webContentsSubscriptions: Array<() => void> = []
 
   constructor(
     id: string,
-    options: { url: string; type: ViewType },
-    onStateChanged: () => void,
-    onReady: () => void,
+    options: { url: string; type: ViewType; channel?: Channel; preload?: string },
   ) {
+    super()
     this.id = id
     this.type = options.type
     this.url = options.url
-    this._onStateChanged = onStateChanged
-    this._onReady = onReady
 
-    this.webContentsView = new WebContentsView({
-      webPreferences: {
-        preload: paths.getViewPreloadPath(),
-        contextIsolation: true,
-        nodeIntegration: false,
-        ...(options.type === 'background' && { offscreen: true }),
-      },
-    })
+    const webPreferences: Electron.WebPreferences = {
+      contextIsolation: true,
+      nodeIntegration: false,
+      ...(options.type === 'background' && { offscreen: true }),
+      ...(options.preload && { preload: options.preload }),
+    }
 
-    this.channel = new ChannelInstance()
+    this.webContentsView = new WebContentsView({ webPreferences })
+
+    this.channel = options.channel ?? new Channel()
 
     this.setupWebContentsListeners()
   }
 
-  private setupWebContentsListeners(): void {
+  private subscribeToWebContents(event: string, handler: (...args: unknown[]) => void): void {
     const wc = this.webContentsView.webContents
+    const subscription = () => {
+      // @ts-expect-error - Electron types are strict about event names
+      wc.off(event, handler)
+    }
+    this.webContentsSubscriptions.push(subscription)
+    // @ts-expect-error - Electron types are strict about event names
+    wc.on(event, handler)
+  }
 
-    wc.on('did-finish-load', () => {
+  private setupWebContentsListeners(): void {
+    const finishLoadHandler = () => {
       this._loaded = true
-      this._onReady()
-      this._onStateChanged()
-    })
+      this.emit('ready')
+      this.emit('state-changed', this.state)
+    }
+    const focusHandler = () => this.emit('state-changed', this.state)
+    const blurHandler = () => this.emit('state-changed', this.state)
 
-    wc.on('focus', () => this._onStateChanged())
-    wc.on('blur', () => this._onStateChanged())
+    this.subscribeToWebContents('did-finish-load', finishLoadHandler)
+    this.subscribeToWebContents('focus', focusHandler)
+    this.subscribeToWebContents('blur', blurHandler)
   }
 
   async load(): Promise<void> {
@@ -60,7 +68,42 @@ export class ManagedView implements IManagedView {
   }
 
   async initChannel(): Promise<void> {
-    await this.channel.setupMain(this.webContentsView.webContents.id)
+    await this.channel.init({ webContentsId: this.webContentsView.webContents.id })
+  }
+
+  attachTo(
+    window: Electron.BrowserWindow | Electron.BaseWindow,
+    bounds?: Electron.Rectangle,
+  ): void {
+    this.detach()
+    ;(window.contentView as { addChildView: (v: unknown) => void }).addChildView(
+      this.webContentsView,
+    )
+    this.hostWindow = window
+    if (bounds) {
+      this.webContentsView.setBounds(bounds)
+    }
+    this.emit('state-changed', this.state)
+  }
+
+  detach(): void {
+    if (this.hostWindow) {
+      const contentView = this.hostWindow.contentView as {
+        removeChildView?: (v: unknown) => void
+      }
+      contentView.removeChildView?.(this.webContentsView)
+      this.hostWindow = null
+      this.emit('state-changed', this.state)
+    }
+  }
+
+  toggleDevTools(): void {
+    const wc = this.webContentsView.webContents
+    if (wc.isDevToolsOpened()) {
+      wc.closeDevTools()
+    } else {
+      wc.openDevTools({ mode: 'detach' })
+    }
   }
 
   get state(): ViewState {
@@ -78,6 +121,13 @@ export class ManagedView implements IManagedView {
   }
 
   destroy(): void {
+    this.detach()
+
+    this.webContentsSubscriptions.forEach((unsub) => unsub())
+    this.webContentsSubscriptions = []
+
+    this.removeAllListeners()
+
     this.channel.destroy()
     const wc = this.webContentsView.webContents
     if (!wc.isDestroyed()) {
