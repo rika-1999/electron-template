@@ -1,14 +1,13 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { createChannelMock } from '@/__tests__/infrastructure/helpers/channel-helpers'
 import type { ChannelAPI } from '@/shared/channel'
 
-async function createTestView(
-  viewManager: import('@/main/view-manager/index').ViewManager,
-  url: string,
-): Promise<{ viewId: string; channel: ChannelAPI }> {
+async function createTestView(url: string): Promise<{ viewId: string; channel: ChannelAPI }> {
   const { mainChannel, rendererChannel } = await createChannelMock()
 
-  const viewId = await viewManager.createView({
+  const viewId = await (
+    await import('@/main/view-manager')
+  ).viewManager.createView({
     url,
     channel: mainChannel as any,
     type: 'embedded',
@@ -21,17 +20,12 @@ describe('ViewManager - Channel Communication', () => {
   let viewManager: import('@/main/view-manager/index').ViewManager
 
   beforeEach(async () => {
-    const { ViewManager } = await import('@/main/view-manager/index')
-    viewManager = new ViewManager()
-  })
-
-  afterEach(() => {
-    viewManager.destroy()
+    viewManager = (await import('@/main/view-manager')).viewManager
   })
 
   describe('requestTo', () => {
     it('should send request to specific view and receive response', async () => {
-      const { viewId, channel } = await createTestView(viewManager, 'http://localhost:5173')
+      const { viewId, channel } = await createTestView('http://localhost:5173')
 
       channel.onRequest('testMethod', () => 'testResponse')
       const result = await viewManager.requestTo(viewId, 'testMethod')
@@ -46,7 +40,7 @@ describe('ViewManager - Channel Communication', () => {
     })
 
     it('should pass timeout parameter to channel request', async () => {
-      const { viewId, channel } = await createTestView(viewManager, 'http://localhost:5173')
+      const { viewId, channel } = await createTestView('http://localhost:5173')
 
       channel.onRequest('testMethod', () => 'response')
       const result = await viewManager.requestTo(viewId, 'testMethod', undefined, 5000)
@@ -57,8 +51,8 @@ describe('ViewManager - Channel Communication', () => {
 
   describe('broadcast', () => {
     it('should send request to all views', async () => {
-      const view1 = await createTestView(viewManager, 'http://localhost:5173/view1')
-      const view2 = await createTestView(viewManager, 'http://localhost:5173/view2')
+      const view1 = await createTestView('http://localhost:5173/view1')
+      const view2 = await createTestView('http://localhost:5173/view2')
 
       const handler1 = vi.fn(() => 'result1')
       const handler2 = vi.fn(() => 'result2')
@@ -76,8 +70,8 @@ describe('ViewManager - Channel Communication', () => {
     })
 
     it('should handle partial failures gracefully', async () => {
-      const view1 = await createTestView(viewManager, 'http://localhost:5173/view1')
-      const view2 = await createTestView(viewManager, 'http://localhost:5173/view2')
+      const view1 = await createTestView('http://localhost:5173/view1')
+      const view2 = await createTestView('http://localhost:5173/view2')
 
       view1.channel.onRequest('failMethod', () => {
         throw new Error('Handler error')
@@ -88,8 +82,8 @@ describe('ViewManager - Channel Communication', () => {
     })
 
     it('should pass timeout parameter to all channel requests', async () => {
-      const view1 = await createTestView(viewManager, 'http://localhost:5173/view1')
-      const view2 = await createTestView(viewManager, 'http://localhost:5173/view2')
+      const view1 = await createTestView('http://localhost:5173/view1')
+      const view2 = await createTestView('http://localhost:5173/view2')
 
       const handler1 = vi.fn(() => 'result1')
       const handler2 = vi.fn(() => 'result2')
@@ -137,8 +131,8 @@ describe('ViewManager - Channel Communication', () => {
 
   describe('onAnyRequest', () => {
     it('should apply handler to all existing views', async () => {
-      const view1 = await createTestView(viewManager, 'http://localhost:5173/view1')
-      const view2 = await createTestView(viewManager, 'http://localhost:5173/view2')
+      const view1 = await createTestView('http://localhost:5173/view1')
+      const view2 = await createTestView('http://localhost:5173/view2')
 
       const capturedViewIds: string[] = []
       const handler = (viewId: string) => {
@@ -159,7 +153,7 @@ describe('ViewManager - Channel Communication', () => {
 
       viewManager.onAnyRequest('newMethod', handler)
 
-      const { viewId, channel } = await createTestView(viewManager, 'http://localhost:5173')
+      const { viewId, channel } = await createTestView('http://localhost:5173')
 
       await channel.request('newMethod')
 
@@ -167,7 +161,7 @@ describe('ViewManager - Channel Communication', () => {
     })
 
     it('should pass viewId to handler', async () => {
-      const { viewId, channel } = await createTestView(viewManager, 'http://localhost:5173')
+      const { viewId, channel } = await createTestView('http://localhost:5173')
 
       let capturedViewId: string | undefined
       viewManager.onAnyRequest('captureMethod', (id) => {
@@ -181,8 +175,8 @@ describe('ViewManager - Channel Communication', () => {
     })
 
     it('should allow multiple handlers for different methods', async () => {
-      const view1 = await createTestView(viewManager, 'http://localhost:5173/view1')
-      const view2 = await createTestView(viewManager, 'http://localhost:5173/view2')
+      const view1 = await createTestView('http://localhost:5173/view1')
+      const view2 = await createTestView('http://localhost:5173/view2')
 
       const handler1 = vi.fn(() => 'method1Response')
       const handler2 = vi.fn(() => 'method2Response')
@@ -200,8 +194,8 @@ describe('ViewManager - Channel Communication', () => {
 
   describe('offAnyRequest', () => {
     it('should remove handler from all existing views', async () => {
-      const view1 = await createTestView(viewManager, 'http://localhost:5173/view1')
-      const view2 = await createTestView(viewManager, 'http://localhost:5173/view2')
+      const view1 = await createTestView('http://localhost:5173/view1')
+      const view2 = await createTestView('http://localhost:5173/view2')
 
       const capturedViewIds: string[] = []
       const handler = (viewId: string) => {
@@ -223,8 +217,8 @@ describe('ViewManager - Channel Communication', () => {
     })
 
     it('should remove specific method handler only', async () => {
-      const view1 = await createTestView(viewManager, 'http://localhost:5173/view1')
-      const view2 = await createTestView(viewManager, 'http://localhost:5173/view2')
+      const view1 = await createTestView('http://localhost:5173/view1')
+      const view2 = await createTestView('http://localhost:5173/view2')
 
       const handler1 = vi.fn(() => 'keep1')
       const handler2 = vi.fn(() => 'keep2')
@@ -251,9 +245,9 @@ describe('ViewManager - Channel Communication', () => {
 
   describe('getAllChannels', () => {
     it('should return channels for all views', async () => {
-      const { viewId: viewId1 } = await createTestView(viewManager, 'http://localhost:5173/view1')
-      const { viewId: viewId2 } = await createTestView(viewManager, 'http://localhost:5173/view2')
-      const { viewId: viewId3 } = await createTestView(viewManager, 'http://localhost:5173/view3')
+      const { viewId: viewId1 } = await createTestView('http://localhost:5173/view1')
+      const { viewId: viewId2 } = await createTestView('http://localhost:5173/view2')
+      const { viewId: viewId3 } = await createTestView('http://localhost:5173/view3')
 
       const channels = viewManager.getAllChannels()
 
