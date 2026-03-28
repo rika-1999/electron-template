@@ -31,13 +31,13 @@ export function serialize(value: unknown): string {
 
 export function deserialize<T = unknown>(value: string): T {
   // Handle primitive strings that were serialized with String()
-  if (value === 'null') return null as T
-  if (value === 'undefined') return undefined as T
-  if (value === 'true') return true as T
-  if (value === 'false') return false as T
-  if (value === 'NaN') return NaN as T
-  if (value === 'Infinity') return Infinity as T
-  if (value === '-Infinity') return -Infinity as T
+  if (value === 'null') {return null as T}
+  if (value === 'undefined') {return undefined as T}
+  if (value === 'true') {return true as T}
+  if (value === 'false') {return false as T}
+  if (value === 'NaN') {return NaN as T}
+  if (value === 'Infinity') {return Infinity as T}
+  if (value === '-Infinity') {return -Infinity as T}
 
   // Try to parse as JSON
   try {
@@ -56,9 +56,9 @@ export function deserialize<T = unknown>(value: string): T {
         return error
       }
       // Restore undefined serialized as string
-      if (v === 'undefined') return undefined
+      if (v === 'undefined') {return undefined}
       // Restore function placeholders
-      if (typeof v === 'string' && v.startsWith('[Function')) return v
+      if (typeof v === 'string' && v.startsWith('[Function')) {return v}
       return v
     }) as T
   } catch {

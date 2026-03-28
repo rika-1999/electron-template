@@ -8,7 +8,7 @@ let sender: LogSender | null = null
 let initPromise = Promise.resolve(undefined as unknown)
 
 async function initSender() {
-  if (sender) return sender
+  if (sender) {return sender}
 
   if (process.env.PROCESS_TYPE === 'main') {
     const { ipcMain } = await import('electron')
@@ -41,7 +41,7 @@ async function initSender() {
 }
 
 export function logSender(): LogSender {
-  if (sender) return sender
+  if (sender) {return sender}
   initPromise = initPromise.then(initSender)
   return {
     sendLog(level: LogLevel, ctx: LogContext, serializedParams: string[]): void {

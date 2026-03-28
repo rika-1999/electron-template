@@ -2,6 +2,7 @@ export interface ChannelAPI {
   request(method: string, payload?: unknown, timeout?: number): Promise<unknown>
   onRequest(method: string, handler: Handler): void
   offRequest(method: string): void
+  setDefaultTimeout(timeout: number): void
 }
 
 export interface ChannelCenter {

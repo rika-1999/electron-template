@@ -72,7 +72,7 @@ export class ManagedWindow extends TypedEmitter<ManagedWindowEventMap> implement
   }
 
   isVisible(): boolean {
-    if (this.nativeWindow.isDestroyed()) return false
+    if (this.nativeWindow.isDestroyed()) {return false}
     return this.nativeWindow.isVisible()
   }
 

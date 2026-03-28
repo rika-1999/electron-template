@@ -1,8 +1,19 @@
 # Code Style
 
+See [AGENTS.md](../AGENTS.md) for a quick reference guide.
+
+## ESLint Rules
+
+See `eslint.config.mjs`:
+
+- `curly: ['error', 'all']` — all `if`/`else`/`for`/`while`/`do` bodies must use `{}`
+- `@typescript-eslint/no-explicit-any`: warn
+- `@typescript-eslint/no-unused-vars`: warn (args starting with `_` are ignored)
+
 ## Formatting (Prettier)
 
-See `.prettierrc`:
+See [`.prettierrc`](../.prettierrc):
+
 - No semicolons
 - Single quotes
 - Trailing commas
@@ -21,16 +32,16 @@ Run `pnpm run lint -- --fix` before committing.
 
 ## Naming Conventions
 
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Classes | PascalCase | `ManagedWindow`, `ChannelInstance` |
-| Interfaces | PascalCase, prefix `I` optional | `IManagedWindow` or `ManagedWindow` |
-| Private fields | `_` prefix + camelCase | `_loaded`, `_forceQuit` |
-| Methods | camelCase | `createWindow`, `destroyView` |
-| Event handlers | `on` prefix | `onClose`, `onResize` |
-| Subscription cleanup | `unsubscribe` / `unsub` | `unsub()`, `appSubscriptions` |
-| Constants | UPPER_SNAKE_CASE | `DEFAULT_CLOSE_ACTION` |
-| Test files | `*.test.ts` | `index.test.ts` |
+| Element              | Convention                      | Example                             |
+| -------------------- | ------------------------------- | ----------------------------------- |
+| Classes              | PascalCase                      | `ManagedWindow`, `ChannelInstance`  |
+| Interfaces           | PascalCase, prefix `I` optional | `IManagedWindow` or `ManagedWindow` |
+| Private fields       | `_` prefix + camelCase          | `_loaded`, `_forceQuit`             |
+| Methods              | camelCase                       | `createWindow`, `destroyView`       |
+| Event handlers       | `on` prefix                     | `onClose`, `onResize`               |
+| Subscription cleanup | `unsubscribe` / `unsub`         | `unsub()`, `appSubscriptions`       |
+| Constants            | UPPER_SNAKE_CASE                | `DEFAULT_CLOSE_ACTION`              |
+| Test files           | `*.test.ts`                     | `index.test.ts`                     |
 
 ## Imports
 

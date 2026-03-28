@@ -54,7 +54,7 @@ export class ViewManager extends TypedEmitter<ViewEventMap> implements ChannelCe
 
   destroyView(viewId: string): void {
     const view = this.views.get(viewId)
-    if (!view) return
+    if (!view) {return}
 
     view.destroy()
     this.views.delete(viewId)
@@ -84,7 +84,7 @@ export class ViewManager extends TypedEmitter<ViewEventMap> implements ChannelCe
     timeout?: number,
   ): Promise<unknown> {
     const view = this.views.get(viewId)
-    if (!view) throw new Error(`View not found: ${viewId}`)
+    if (!view) {throw new Error(`View not found: ${viewId}`)}
     return view.channel.request(method, payload, timeout)
   }
 
@@ -98,7 +98,7 @@ export class ViewManager extends TypedEmitter<ViewEventMap> implements ChannelCe
 
   onRequest(viewId: string, method: string, handler: Handler): void {
     const view = this.views.get(viewId)
-    if (!view) return
+    if (!view) {return}
     view.channel.onRequest(method, handler)
   }
 

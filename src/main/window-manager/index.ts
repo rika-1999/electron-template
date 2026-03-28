@@ -33,7 +33,7 @@ export class WindowManager extends TypedEmitter<WindowEventMap> {
 
   destroyWindow(windowId: string): void {
     const win = this.windows.get(windowId)
-    if (!win) return
+    if (!win) {return}
 
     win.destroy()
     this.windows.delete(windowId)

@@ -1,5 +1,7 @@
 # Architecture
 
+See [AGENTS.md](../AGENTS.md) for a quick reference guide.
+
 ## Process Model
 
 Electron runs in 3 process types:
@@ -28,7 +30,7 @@ Each sub-window uses its own preload (`src/preload/view.ts`) with an independent
 
 ## IPC Communication
 
-All IPC uses `MessageChannelMain` via `ChannelInstance` (`src/utils/channel/`). Use `channel.request()` from renderer to call main handlers and await responses.
+All IPC uses `MessagePort` via the `Channel` abstraction (not traditional `ipcRenderer.invoke`). See [Channel Architecture](channel.md) for detailed documentation.
 
 ## Directory Structure
 

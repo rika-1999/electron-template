@@ -1,5 +1,7 @@
 # Patterns
 
+See [AGENTS.md](../AGENTS.md) for a quick reference guide and [Code Style](code-style.md) for formatting rules.
+
 ## Event Subscription Cleanup
 
 For app/window/webContents events, track subscriptions for cleanup:
@@ -52,36 +54,50 @@ destroy(): void {
 
 ## Process Type Checks
 
+Prefer utility helpers from `@/utils/env`:
+
 ```typescript
-if (process.env.PROCESS_TYPE === 'main') {
+import { isMain, isPreload, isRenderer, isDev } from '@/utils/env'
+
+if (isMain()) {
   /* main process only */
 }
-if (process.env.PROCESS_TYPE === 'preload') {
+if (isPreload()) {
   /* preload only */
 }
-if (process.env.PROCESS_TYPE === 'renderer') {
+if (isRenderer()) {
   /* renderer only */
+}
+```
+
+Or check directly:
+
+```typescript
+if (process.env.PROCESS_TYPE === 'main') {
+  /* ... */
 }
 ```
 
 ## Testing
 
+See [Project Structure](architecture.md) for directory layout.
+
 ### Architecture
 
-Each Vitest project has its own `setup.ts`:
+Three Vitest projects, each with its own setup:
 
-```
-infrastructure/
-├── setup.ts          # main project — electron mock, resetSingletons, beforeEach
-├── setup.preload.ts  # preload project — electron mock, beforeEach
-└── setup.renderer.ts # renderer project — jest-dom, minimal
-```
+| Project  | Setup                              | Include                                                 | Environment |
+| -------- | ---------------------------------- | ------------------------------------------------------- | ----------- |
+| main     | `infrastructure/setup.ts`          | `src/__tests__/main/**`, `src/__tests__/integration/**` | node        |
+| preload  | `infrastructure/setup.preload.ts`  | `src/__tests__/preload/**`                              | jsdom       |
+| renderer | `infrastructure/setup.renderer.ts` | `src/__tests__/renderer/**`                             | jsdom       |
 
 ### Mock Rules
 
 - **`vi.mock` must be in setup files only** — never in test files
 - **Test files may import mocks** from `@/__tests__/infrastructure/mocks/electron` for assertions
 - **`beforeEach` cleanup** lives in setup, not in test files
+- Renderer setup mocks `window.__app_log__`, `window.__app_channel__`, `window.__app_ipc_channel__`
 
 ### Example
 

@@ -75,7 +75,7 @@ function createUpdateManager(config: UpdateConfig) {
 
   function startAutoCheck(interval?: number): void {
     const ms = interval ?? checkInterval
-    if (!ms || ms <= 0) return
+    if (!ms || ms <= 0) {return}
     stopAutoCheck()
     log.info(`Starting auto update check, interval: ${ms}ms`)
     checkTimer = setInterval(() => {
