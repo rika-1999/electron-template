@@ -4,6 +4,7 @@ import { initUpdater } from './updater'
 import { appTray } from './tray'
 import { registerUpdaterIpc } from './ipc'
 import { createMainWindow } from './main-window'
+import { registerMainServices } from './services'
 import { serialize } from '@/utils/serialize'
 
 logManager.initLog({
@@ -14,7 +15,7 @@ logManager.initLog({
     const source = ctx.source ? `[${ctx.source}]` : ''
     const ctxEntries = Object.entries(ctx).filter(([k]) => k !== 'source')
     const ctxStr = ctxEntries.map(([k, v]) => `[${k}:${String(v)}]`).join(' ')
-    const msg = params.map(p => serialize(p)).join(' ')
+    const msg = params.map((p) => serialize(p)).join(' ')
     return `${time} [${level}]${source}${ctxStr} ${msg}`
   },
 })
@@ -23,6 +24,7 @@ app.whenReady().then(async () => {
   await createMainWindow()
   appTray.create()
 
+  registerMainServices()
   registerUpdaterIpc()
 
   initUpdater({
