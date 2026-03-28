@@ -4,10 +4,10 @@ import { windowManager } from './window-manager'
 import { viewManager } from './view-manager'
 import { env } from '@/utils/env'
 import { paths } from './utils/paths'
-import { channel } from '@/utils/channel'
+import { channel } from '@/shared/channel'
 import { logger } from '@/utils/log'
 
-const log = logger(__SOURCE_FILE__);
+const log = logger(__SOURCE_FILE__)
 
 export async function createMainWindow() {
   log.info('Creating main window, env:', env.isDev() ? 'development' : 'production')
@@ -30,12 +30,12 @@ export async function createMainWindow() {
 
   const win = windowManager.getNativeWindow(windowId)!
 
-  const viewUrl = env.isDev() 
-    ? 'http://localhost:5173' 
+  const viewUrl = env.isDev()
+    ? 'http://localhost:5173'
     : pathToFileURL(paths.getRendererPath()).href
-  
+
   log.info('Loading view URL:', viewUrl)
-  
+
   const viewId = await viewManager.createView({
     url: viewUrl,
     type: 'embedded',
@@ -52,10 +52,10 @@ export async function createMainWindow() {
     log.info('Window resized - bounds:', bounds, 'contentBounds:', contentBounds)
     view.webContentsView.setBounds({ ...contentBounds, x: 0, y: 0 })
   })
-  view.toggleDevTools();
+  view.toggleDevTools()
 
   log.info('Initializing channel')
   channel.init({ webContentsId: view.webContentsView.webContents.id })
-  
+
   log.info('Main window created successfully')
 }

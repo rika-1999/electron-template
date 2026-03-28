@@ -1,5 +1,5 @@
 import type { WebContentsView, BrowserWindow, BaseWindow } from 'electron'
-import type { Channel } from '@/utils/channel'
+import type { Channel } from '@/shared/channel'
 import type { ViewState, ViewType, ManagedViewEventMap } from '@/shared/view'
 
 export interface ManagedView {

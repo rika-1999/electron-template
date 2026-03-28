@@ -1,10 +1,9 @@
 import { deserialize, serialize } from '@/utils/serialize'
 import { ChannelTimeoutError } from './error'
-import type { ChannelMessage, ChannelRequest, ChannelResponse } from './types'
+import type { ChannelMessage, ChannelRequest, ChannelResponse, Handler } from './types'
 
-type Handler = (payload: unknown) => Promise<unknown> | unknown
 type ResponseHandler = (response: ChannelResponse) => void
-type Port = Electron.MessagePortMain | MessagePort
+export type Port = Electron.MessagePortMain | MessagePort
 
 function generateId(method: string): string {
   return `${method}-${Date.now()}-${Math.random().toString(36).slice(2)}`

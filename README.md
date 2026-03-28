@@ -77,12 +77,12 @@ The update server must serve `latest.yml` (Windows) or `latest-mac.yml` (macOS) 
 
 ## IPC Communication
 
-All inter-process communication goes through a unified `channel` module (`src/utils/channel/`) built on Electron's `MessageChannelMain`. It supports bidirectional request-response between main and renderer.
+All inter-process communication goes through a unified `channel` module (`src/shared/channel.ts`) built on Electron's `MessageChannelMain`. It supports bidirectional request-response between main and renderer.
 
 ### Default channel (backward-compatible singleton)
 
 ```ts
-import { channel } from '@/utils/channel'
+import { channel } from '@/shared/channel'
 
 // Main: handle requests from renderer
 channel.on('my:method', async (payload) => {
@@ -96,7 +96,7 @@ const result = await channel.request('my:method', payload)
 ### ChannelInstance (per-view independent channels)
 
 ```ts
-import { ChannelInstance } from '@/utils/channel'
+import { Channel } from '@/shared/channel'
 
 const ch = new ChannelInstance()
 await ch.init({ webContentsId: view.webContents.id })
@@ -147,7 +147,7 @@ Each sub-window uses a dedicated preload script (`src/preload/view.ts`) with its
 
 ```ts
 import { log } from '@/utils/log'
-import { channel } from '@/utils/channel'
+import { channel } from '@/shared/channel'
 ```
 
 ## Project Structure

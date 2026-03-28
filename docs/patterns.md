@@ -104,7 +104,7 @@ Three Vitest projects, each with its own setup:
 ```typescript
 // src/__tests__/preload/channel.test.ts
 import { describe, it, expect } from 'vitest'
-import { Channel } from '@/utils/channel'
+import { Channel } from '@/shared/channel'
 import { mockIpcRenderer, mockContextBridge } from '@/__tests__/infrastructure/mocks/electron'
 
 describe('Channel (preload mode)', () => {

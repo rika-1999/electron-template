@@ -112,7 +112,7 @@ Note: Methods must be bound because `contextBridge` only copies own enumerable p
 ### Main process
 
 ```typescript
-import { channel } from '@/utils/channel'
+import { channel } from '@/shared/channel'
 
 await channel.init({ webContentsId: webContents.id })
 

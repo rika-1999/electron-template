@@ -1,26 +1,11 @@
-import type { ChannelAPI } from '@/shared/channel'
-import { ChannelApiImpl } from './channel-api-impl'
+import { ChannelApiImpl, type Port as Port_ } from './impl'
+import { ChannelTimeoutError } from './error'
+import type { ChannelAPI, Handler, InitOptions } from './types'
 
-type Port = Electron.MessagePortMain | MessagePort
-
-export type { ChannelMessage, ChannelRequest, ChannelResponse } from './types'
-export type { ChannelAPI, ChannelCenter, Handler, AnyRequestHandler } from '@/shared/channel'
-
-// ─── Channel Registry ─────────────────────────────────────────────────────────
-
-const channelRegistry = new Map<number, Port>()
-let handlerRegistered = false
-
-// ─── Channel ────────────────────────────────────────────────────────────────
-
-export interface InitOptions {
-  webContentsId?: number
-  expose?: boolean
-  defaultTimeout?: number
-}
+const channelRegistry = new Map<number, Port_>()
 
 export class Channel implements ChannelAPI {
-  private port: Port | null = null
+  private port: Port_ | null = null
   private webContentsId: number | null = null
   private api: ChannelApiImpl
 
@@ -32,16 +17,12 @@ export class Channel implements ChannelAPI {
     }
   }
 
-  setPort(port: Port): void {
+  setPort(port: Port_): void {
     this.port = port
     this.api.setPort(port)
   }
 
   private async registerChannelHandler() {
-    if (handlerRegistered) {
-      return
-    }
-    handlerRegistered = true
     const { ipcMain } = await import('electron')
 
     ipcMain.handle('__channel_request_port__', (event) => {
@@ -51,8 +32,6 @@ export class Channel implements ChannelAPI {
       return channelRegistry.get(event.sender.id)
     })
   }
-
-  // ─── Setup ───────────────────────────────────────────────────────────────
 
   private async setupMain(webContentsId: number): Promise<void> {
     await this.registerChannelHandler()
@@ -70,8 +49,6 @@ export class Channel implements ChannelAPI {
     const port = (await ipcRenderer.invoke('__channel_request_port__')) as MessagePort
     this.setPort(port)
   }
-
-  // ─── Init ────────────────────────────────────────────────────────────────
 
   async init(options: InitOptions = {}): Promise<void> {
     if (options.defaultTimeout !== undefined) {
@@ -96,8 +73,6 @@ export class Channel implements ChannelAPI {
     }
   }
 
-  // ─── API (delegated to ChannelApiImpl) ────────────────────────────────────
-
   request(method: string, payload?: unknown, timeout?: number): Promise<unknown> {
     return this.api.request(method, payload, timeout)
   }
@@ -114,8 +89,6 @@ export class Channel implements ChannelAPI {
     this.api.setDefaultTimeout(timeout)
   }
 
-  // ─── Lifecycle ───────────────────────────────────────────────────────────
-
   destroy(): void {
     if (process.env.PROCESS_TYPE === 'renderer') {
       return
@@ -131,11 +104,10 @@ export class Channel implements ChannelAPI {
   }
 }
 
-// ─── Default instance (backward compatibility) ───────────────────────────────
-
 export const channel = new Channel()
 
-// ─── Global type declarations ────────────────────────────────────────────────────
+export * from './types'
+export * from './error'
 
 declare global {
   interface Window {

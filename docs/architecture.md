@@ -16,7 +16,7 @@ Electron runs in 3 process types:
 | --------------- | ---------------------------------- | ---------------------------------------- |
 | `viewManager`   | `src/main/view-manager/index.ts`   | All `WebContentsView` instances          |
 | `windowManager` | `src/main/window-manager/index.ts` | All `BrowserWindow` instances            |
-| `channel`       | `src/utils/channel/index.ts`       | Default IPC channel (MessageChannelMain) |
+| `channel`       | `src/shared/channel.ts`            | Default IPC channel (MessageChannelMain) |
 
 ## ViewManager Modes
 
@@ -50,11 +50,11 @@ src/
 │   ├── index.ts          # Main window preload
 │   └── view.ts           # Sub-window preload (per-view ChannelInstance)
 ├── renderer/               # React SPA (dev only)
-├── shared/                 # Types shared across processes
+├── shared/                 # Shared types + infrastructure
+│   ├── channel.ts        # IPC channel (MessageChannelMain)
 │   ├── window.ts
 │   └── view.ts
 ├── utils/                  # Shared utilities
-│   ├── channel/          # IPC channel (MessageChannelMain)
 │   ├── log/              # electron-log wrapper
 │   ├── serialize/        # Serialization utils
 │   ├── typed-emitter.ts  # Lightweight event emitter

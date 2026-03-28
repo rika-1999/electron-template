@@ -1,4 +1,4 @@
-import type { Channel } from '@/utils/channel'
+import type { Channel } from '@/shared/channel'
 
 export type ViewType = 'embedded' | 'detached' | 'background'
 
@@ -23,7 +23,7 @@ export interface ViewOptions {
 
 export interface ManagedViewEventMap {
   'state-changed': (state: ViewState) => void
-  'ready': () => void
+  ready: () => void
 }
 
 export interface ViewEventMap {

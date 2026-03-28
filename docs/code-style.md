@@ -53,7 +53,7 @@ import { app, BrowserWindow } from 'electron'
 import type { WindowState, ViewOptions } from '@/shared/window'
 
 // Internal modules (path alias)
-import { Channel } from '@/utils/channel'
+import { Channel } from '@/shared/channel'
 import { viewManager } from '@/main/view-manager'
 
 // Relative imports for sibling modules

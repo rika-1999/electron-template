@@ -1,10 +1,10 @@
 # AGENTS.md
 
-> **Documentation Principle**: Keep `AGENTS.md` simple — quick reference only. Complex information belongs in `docs/` with cross-references.
+> **Quick Reference**: This file is for agentic coding assistants. Detailed docs are in `docs/`.
 
 ## Project Overview
 
-Electron 34 + React 18 + TypeScript desktop app scaffold. MessagePort-based Channel IPC.
+Electron 34 + React 18 + TypeScript desktop app with MessagePort-based IPC. Three Vitest projects (main/preload/renderer).
 
 ## Quick Commands
 
@@ -15,18 +15,20 @@ pnpm run dist:win         # Package for Windows
 pnpm run lint             # Lint code (eslint src)
 npx eslint src --fix      # Lint and auto-fix
 pnpm run test             # Run all tests
-npx vitest run <file>     # Single test file
+pnpm run test:main        # Run main process tests only
+pnpm run test:preload     # Run preload tests only
+pnpm run test:renderer    # Run renderer tests only
+npx vitest run <file>     # Single test file (auto-detects project)
 npx vitest run <file> --project main   # Single file in main project
 ```
 
 ## Code Style Summary
 
-- ESLint: `curly: ['error', 'all']` — all control bodies must use `{}`
-- Prettier: no semicolons, single quotes, trailing commas, print width 100
-- TypeScript: strict mode, use `unknown` instead of `any`
-- Imports: Electron → type imports → `@/*` path alias → relative
-- Singletons: `export const channel = new Channel()`
-- Process checks: `@/utils/env` helpers (`isMain()`, `isRenderer()`, etc.)
+- **ESLint**: `curly: ['error', 'all']` — all control bodies must use `{}`
+- **Prettier**: no semicolons, single quotes, trailing commas, print width 100
+- **TypeScript**: strict mode, use `unknown` instead of `any`
+- **Path alias**: `@/*` maps to `src/` — use this for all internal imports
+- **Singletons**: Export instances: `export const channel = new Channel()`
 
 ## Naming Conventions
 
@@ -50,19 +52,85 @@ import { app, BrowserWindow } from 'electron'
 import type { WindowState, ViewOptions } from '@/shared/window'
 
 // Internal modules (path alias)
-import { Channel } from '@/utils/channel'
+import { Channel } from '@/shared/channel'
 import { viewManager } from '@/main/view-manager'
 
 // Relative imports for sibling modules
 import { paths } from '../utils/paths'
 ```
 
+## Error Handling
+
+- Use `Error` objects with descriptive messages
+- Type narrow errors before accessing properties:
+
+```typescript
+} catch (err) {
+  const message = err instanceof Error ? err.message : String(err)
+  // ...
+}
+```
+
+- Check for null/undefined before use:
+
+```typescript
+if (!wc) throw new Error(`webContents not found: ${webContentsId}`)
+```
+
 ## Key Patterns
 
-- **Singletons**: Modules export singleton instances: `export const channel = new Channel()`
-- **TypedEmitter**: Managers and managed objects extend `TypedEmitter` for typed events
-- **Event cleanup**: Track subscriptions for cleanup in `destroy()`. Use `@ts-expect-error` for Electron's strict event typing
-- **Error handling**: Use `Error` objects with descriptive messages. Type narrow errors before accessing properties
+### Singletons
+
+Modules export singleton instances: `export const channel = new Channel()`
+
+### TypedEmitter
+
+Managers and managed objects extend `TypedEmitter` for typed events
+
+### Event Cleanup
+
+Track subscriptions for cleanup in `destroy()`. Use `@ts-expect-error` for Electron's strict event typing
+
+### Process Type Checks
+
+Use `@/utils/env` helpers (`isMain()`, `isRenderer()`, etc.) or check `process.env.PROCESS_TYPE`
+
+### Testing Architecture
+
+Three Vitest projects:
+
+- **main**: `setup.ts` → `src/__tests__/main/**` (node env)
+- **preload**: `setup.preload.ts` → `src/__tests__/preload/**` (jsdom)
+- **renderer**: `setup.renderer.ts` → `src/__tests__/renderer/**` (jsdom)
+
+**Mock Rules**:
+
+- `vi.mock` must be in setup files only
+- Test files import mocks from `@/__tests__/infrastructure/mocks/electron`
+- Main process tests: use `resetSingletons()` in `beforeEach` to clear state
+
+## Directory Structure
+
+```
+src/
+├── main/                    # Main process
+│   ├── view-manager/         # WebContentsView management
+│   └── window-manager/       # BrowserWindow management
+├── preload/                 # Preload scripts
+├── renderer/                # React SPA
+├── shared/                  # Shared types + infrastructure
+│   ├── channel/             # IPC channel (folder structure)
+│   ├── view.ts
+│   └── window.ts
+├── utils/                   # Shared utilities + app services
+│   ├── log/                 # electron-log wrapper
+│   ├── serialize/
+│   ├── promise.ts
+│   ├── env.ts
+│   └── typed-emitter.ts
+└── __tests__/               # Test suites
+    └── infrastructure/     # Test infrastructure
+```
 
 ## Documentation
 

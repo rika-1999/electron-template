@@ -1,5 +1,5 @@
 import { autoUpdater } from 'electron-updater'
-import { channel } from '@/utils/channel'
+import { channel } from '@/shared/channel'
 import { getUpdater } from './updater'
 
 export function registerUpdaterIpc(): void {

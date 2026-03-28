@@ -56,10 +56,10 @@ export function createMockMessageChannel() {
  * @returns { mainChannel, rendererChannel } - a pair of Channel instances that can communicate
  */
 export async function createChannelMock(_options: { webContentsId?: number } = {}): Promise<{
-  mainChannel: import('@/utils/channel').Channel
-  rendererChannel: import('@/utils/channel').Channel
+  mainChannel: import('@/shared/channel').Channel
+  rendererChannel: import('@/shared/channel').Channel
 }> {
-  const { Channel } = await import('@/utils/channel')
+  const { Channel } = await import('@/shared/channel')
   const { port1, port2 } = createMockMessageChannel()
 
   const mainChannel = new Channel()

@@ -4,7 +4,7 @@ import { createChannelMock } from '@/__tests__/infrastructure/helpers/channel-he
 describe('Channel', () => {
   describe('request', () => {
     it('should reject when port not initialized', async () => {
-      const { Channel } = await import('@/utils/channel')
+      const { Channel } = await import('@/shared/channel')
       const ch = new Channel()
       await expect(ch.request('test')).rejects.toThrow('Channel port not initialized')
     })
@@ -12,7 +12,7 @@ describe('Channel', () => {
 
   describe('init', () => {
     it('should throw when webContentsId is missing', async () => {
-      const { Channel } = await import('@/utils/channel')
+      const { Channel } = await import('@/shared/channel')
       const ch = new Channel()
       await expect(ch.init({} as any)).rejects.toThrow('webContentsId is required')
     })
@@ -67,7 +67,7 @@ describe('Channel', () => {
         () => new Promise((resolve) => setTimeout(() => resolve('result'), 200)),
       )
       await expect(mainChannel.request('test', undefined, 50)).rejects.toBeInstanceOf(
-        (await import('@/utils/channel/error')).ChannelTimeoutError,
+        (await import('@/shared/channel')).ChannelTimeoutError,
       )
     })
 
@@ -112,7 +112,7 @@ describe('Channel', () => {
 
   describe('ChannelTimeoutError', () => {
     it('should have correct name and message', async () => {
-      const { ChannelTimeoutError } = await import('@/utils/channel/error')
+      const { ChannelTimeoutError } = await import('@/shared/channel')
       const err = new ChannelTimeoutError('testMethod')
       expect(err.name).toBe('ChannelTimeoutError')
       expect(err.message).toBe('Request timeout: testMethod')
