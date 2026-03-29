@@ -11,4 +11,7 @@ export const env = {
   isRenderer() {
     return process.env.PROCESS_TYPE === 'renderer'
   },
+  getProcessType(): 'main' | 'preload' | 'renderer' {
+    return (process.env.PROCESS_TYPE as 'main' | 'preload' | 'renderer') || 'main'
+  },
 }

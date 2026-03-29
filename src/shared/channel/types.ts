@@ -1,3 +1,6 @@
+export type Handler = (payload: unknown) => Promise<unknown> | unknown
+export type AnyRequestHandler = (viewId: string, payload: unknown) => Promise<unknown> | unknown
+
 export interface ChannelAPI {
   request(method: string, payload?: unknown, timeout?: number): Promise<unknown>
   onRequest(method: string, handler: Handler): void
@@ -14,8 +17,10 @@ export interface ChannelCenter {
   getAllChannels(): Map<string, ChannelAPI>
 }
 
-export type Handler = (payload: unknown) => Promise<unknown> | unknown
-export type AnyRequestHandler = (viewId: string, payload: unknown) => Promise<unknown> | unknown
+export interface ChannelLike {
+  request(method: string, payload?: unknown, timeout?: number): Promise<unknown>
+  onRequest(method: string, handler: Handler): void
+}
 
 export interface ChannelRequest {
   id: string

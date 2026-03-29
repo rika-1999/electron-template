@@ -134,37 +134,4 @@ describe('ServiceRegistry', () => {
       expect(result).toBe('remote-result')
     })
   })
-
-  describe('ChannelCenter support', () => {
-    class TestService extends TestApi {
-      async testMethod(): Promise<string> {
-        return 'test-result'
-      }
-
-      async testMethod2(param: string): Promise<number> {
-        return param.length
-      }
-    }
-
-    it('should register handlers using onAnyRequest', async () => {
-      const mockChannelCenter = {
-        onAnyRequest: vi.fn(),
-      }
-
-      const { serviceRegistry } = await import('@/shared/serviceRegistry')
-      serviceRegistry.defineApi(TestApi, 'main')
-
-      const testService = new TestService()
-      serviceRegistry.implementService(mockChannelCenter, testService)
-
-      expect(mockChannelCenter.onAnyRequest).toHaveBeenCalledWith(
-        'test:testMethod',
-        expect.any(Function),
-      )
-      expect(mockChannelCenter.onAnyRequest).toHaveBeenCalledWith(
-        'test:testMethod2',
-        expect.any(Function),
-      )
-    })
-  })
 })

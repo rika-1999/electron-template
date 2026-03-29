@@ -14,7 +14,11 @@ export default defineConfig({
         test: {
           name: 'main',
           setupFiles: ['src/__tests__/infrastructure/setup.ts'],
-          include: ['src/__tests__/main/**', 'src/__tests__/integration/**'],
+          include: [
+            'src/__tests__/main/**',
+            'src/__tests__/integration/**',
+            'src/__tests__/shared/**',
+          ],
           exclude: ['src/__tests__/renderer/**', 'src/__tests__/preload/**'],
           environment: 'node',
           env: { PROCESS_TYPE: 'main' },

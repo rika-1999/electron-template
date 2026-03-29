@@ -140,6 +140,23 @@ viewManager.onAnyRequest('method', (viewId, payload) => {
 })
 ```
 
+### Service Registry integration
+
+For higher-level service abstraction, use the ServiceRegistry instead of direct channel calls:
+
+```typescript
+import { updaterServiceApi } from '@/shared/services/updater-api'
+
+// Auto-routing: same process invokes directly, cross-process uses channel
+await updaterServiceApi.checkForUpdates()
+
+// Explicit channel selection
+const updater = updaterServiceApi.use(channel)
+await updater.checkForUpdates()
+```
+
+See `src/shared/serviceRegistry/index.ts` for ServiceRegistry API documentation.
+
 ## Key Files
 
 | File                                    | Purpose                                               |

@@ -1,6 +1,8 @@
 # AGENTS.md
 
 > **Quick Reference**: This file is for agentic coding assistants. Detailed docs are in `docs/`.
+>
+> **Note**: When updating docs, keep this file at ~100 lines. Move detailed content to `docs/` folder.
 
 ## Project Overview
 
@@ -22,80 +24,16 @@ npx vitest run <file>     # Single test file (auto-detects project)
 npx vitest run <file> --project main   # Single file in main project
 ```
 
-## Code Style Summary
+## Key Singletons
 
-- **ESLint**: `curly: ['error', 'all']` — all control bodies must use `{}`
-- **Prettier**: no semicolons, single quotes, trailing commas, print width 100
-- **TypeScript**: strict mode, use `unknown` instead of `any`
-- **Path alias**: `@/*` maps to `src/` — use this for all internal imports
-- **Singletons**: Export instances: `export const channel = new Channel()`
+| Singleton         | Location                              | Responsibility                           |
+| ----------------- | ------------------------------------- | ---------------------------------------- |
+| `viewManager`     | `src/main/view-manager/index.ts`      | All `WebContentsView` instances          |
+| `windowManager`   | `src/main/window-manager/index.ts`    | All `BrowserWindow` instances            |
+| `channel`         | `src/shared/channel.ts`               | Default IPC channel (MessageChannelMain) |
+| `serviceRegistry` | `src/shared/serviceRegistry/index.ts` | Service registration and routing         |
 
-## Naming Conventions
-
-| Element        | Convention                      | Example                           |
-| -------------- | ------------------------------- | --------------------------------- |
-| Classes        | PascalCase                      | `ManagedWindow`, `ChannelApiImpl` |
-| Interfaces     | PascalCase, prefix `I` optional | `IManagedWindow` or `ChannelAPI`  |
-| Private fields | `_` prefix + camelCase          | `_loaded`, `_forceQuit`           |
-| Methods        | camelCase                       | `createWindow`, `destroyView`     |
-| Event handlers | `on` prefix                     | `onClose`, `onResize`             |
-| Constants      | UPPER_SNAKE_CASE                | `DEFAULT_CLOSE_ACTION`            |
-| Test files     | `*.test.ts`                     | `index.test.ts`                   |
-
-## Import Order
-
-```typescript
-// Electron imports
-import { app, BrowserWindow } from 'electron'
-
-// Types (import type when only used for types)
-import type { WindowState, ViewOptions } from '@/shared/window'
-
-// Internal modules (path alias)
-import { Channel } from '@/shared/channel'
-import { viewManager } from '@/main/view-manager'
-
-// Relative imports for sibling modules
-import { paths } from '../utils/paths'
-```
-
-## Error Handling
-
-- Use `Error` objects with descriptive messages
-- Type narrow errors before accessing properties:
-
-```typescript
-} catch (err) {
-  const message = err instanceof Error ? err.message : String(err)
-  // ...
-}
-```
-
-- Check for null/undefined before use:
-
-```typescript
-if (!wc) throw new Error(`webContents not found: ${webContentsId}`)
-```
-
-## Key Patterns
-
-### Singletons
-
-Modules export singleton instances: `export const channel = new Channel()`
-
-### TypedEmitter
-
-Managers and managed objects extend `TypedEmitter` for typed events
-
-### Event Cleanup
-
-Track subscriptions for cleanup in `destroy()`. Use `@ts-expect-error` for Electron's strict event typing
-
-### Process Type Checks
-
-Use `@/utils/env` helpers (`isMain()`, `isRenderer()`, etc.) or check `process.env.PROCESS_TYPE`
-
-### Testing Architecture
+## Testing Architecture
 
 Three Vitest projects:
 
@@ -109,17 +47,28 @@ Three Vitest projects:
 - Test files import mocks from `@/__tests__/infrastructure/mocks/electron`
 - Main process tests: use `resetSingletons()` in `beforeEach` to clear state
 
+## Code Style Summary
+
+- **ESLint**: `curly: ['error', 'all']` — all control bodies must use `{}`
+- **Prettier**: no semicolons, single quotes, trailing commas, print width 100
+- **TypeScript**: strict mode, use `unknown` instead of `any`
+- **Path alias**: `@/*` maps to `src/` — use this for all internal imports
+- **Singletons**: Export instances: `export const channel = new Channel()`, `export const serviceRegistry = new ServiceRegistry()`
+
 ## Directory Structure
 
 ```
 src/
 ├── main/                    # Main process
 │   ├── view-manager/         # WebContentsView management
-│   └── window-manager/       # BrowserWindow management
+│   ├── window-manager/       # BrowserWindow management
+│   └── services/             # Service implementations (main process)
 ├── preload/                 # Preload scripts
 ├── renderer/                # React SPA
 ├── shared/                  # Shared types + infrastructure
 │   ├── channel/             # IPC channel (folder structure)
+│   ├── serviceRegistry/      # Service registration center
+│   ├── services/             # Service API definitions
 │   ├── view.ts
 │   └── window.ts
 ├── utils/                   # Shared utilities + app services
@@ -128,15 +77,17 @@ src/
 │   ├── promise.ts
 │   ├── env.ts
 │   └── typed-emitter.ts
-└── __tests__/               # Test suites
+├── vite-plugins/          # Vite plugins
+└── __tests__/              # Test suites
     └── infrastructure/     # Test infrastructure
 ```
 
 ## Documentation
 
-| Topic                | File                                         |
-| -------------------- | -------------------------------------------- |
-| Channel architecture | [docs/channel.md](docs/channel.md)           |
-| Code style details   | [docs/code-style.md](docs/code-style.md)     |
-| Patterns & testing   | [docs/patterns.md](docs/patterns.md)         |
-| Project structure    | [docs/architecture.md](docs/architecture.md) |
+| Topic                | File                                                                       |
+| -------------------- | -------------------------------------------------------------------------- |
+| Channel architecture | [docs/channel.md](docs/channel.md)                                         |
+| Service Registry     | [src/shared/serviceRegistry/index.ts](src/shared/serviceRegistry/index.ts) |
+| Code style details   | [docs/code-style.md](docs/code-style.md)                                   |
+| Patterns & testing   | [docs/patterns.md](docs/patterns.md)                                       |
+| Project structure    | [docs/architecture.md](docs/architecture.md)                               |
