@@ -4,7 +4,7 @@ import { Timeout, MethodTimeout } from '@/shared/serviceRegistry/decorators'
 
 describe('Service Registry Timeout', () => {
   beforeEach(() => {
-    process.env.PROCESS_TYPE = 'main'
+    vi.stubEnv('PROCESS_TYPE', 'main')
   })
 
   describe('@Timeout class decorator', () => {
@@ -329,7 +329,7 @@ describe('Service Registry Timeout', () => {
       const { serviceRegistry } = await import('@/shared/serviceRegistry')
       serviceRegistry.defineApi(CrossProcessApi, 'renderer')
       serviceRegistry.setDefaultChannel(mockChannel as any)
-      process.env.PROCESS_TYPE = 'main'
+      vi.stubEnv('PROCESS_TYPE', 'main')
 
       const crossProcessApi = serviceRegistry.defineApi(CrossProcessApi, 'renderer')
       await crossProcessApi.remoteMethod()
@@ -362,7 +362,7 @@ describe('Service Registry Timeout', () => {
 
       const { serviceRegistry } = await import('@/shared/serviceRegistry')
       serviceRegistry.defineApi(CustomTimeoutApi, 'renderer')
-      process.env.PROCESS_TYPE = 'main'
+      vi.stubEnv('PROCESS_TYPE', 'main')
 
       const api = serviceRegistry.defineApi(CustomTimeoutApi, 'renderer').use(mockChannel as any)
       await api.remoteMethod()
@@ -386,7 +386,7 @@ describe('Service Registry Timeout', () => {
       }
 
       const { serviceRegistry } = await import('@/shared/serviceRegistry')
-      process.env.PROCESS_TYPE = 'main'
+      vi.stubEnv('PROCESS_TYPE', 'main')
       const crossProcessApi = serviceRegistry.defineApi(CrossProcessApi, 'renderer')
       serviceRegistry.setDefaultChannel(mockChannel as any)
 

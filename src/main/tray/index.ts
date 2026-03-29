@@ -1,5 +1,6 @@
 import { Tray, Menu, nativeImage, app } from 'electron'
 import { windowManager } from '../window-manager'
+import { paths } from '../utils/paths'
 
 let tray: Tray | null = null
 
@@ -9,9 +10,11 @@ function getMainWindow() {
 
 export const appTray = {
   create() {
-    const icon = nativeImage.createFromDataURL(
-      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMklEQVQ4T2NkoBAwUqifgWoGjBowasCoAQRDYDShjCYUEg2B0YRCooEwmlBINBBITigAJhABEfkE/GAAAAAASUVORK5CYII=',
-    )
+    const icon = nativeImage.createFromPath(paths.getTrayIconPath())
+
+    if (process.platform === 'darwin') {
+      icon.setTemplateImage(true)
+    }
 
     tray = new Tray(icon)
 

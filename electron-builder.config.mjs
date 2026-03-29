@@ -1,15 +1,22 @@
 export default {
-  appId: 'com.example.electron-test',
-  productName: 'electron-test',
+  appId: 'com.example.electron',
+  productName: 'electron-template',
   directories: {
     output: 'release',
     buildResources: 'build',
   },
+  icon: 'build/icons/app/icon.png',
   asar: false,
   files: ['dist/**/*', 'package.json', '!node_modules/**'],
   extraMetadata: {
     main: 'dist/main/index.js',
   },
+  extraResources: [
+    {
+      from: 'build/icons/tray',
+      to: 'icons/tray',
+    },
+  ],
   win: {
     target: [
       {
@@ -18,6 +25,7 @@ export default {
       },
     ],
     artifactName: '${productName}-${version}-${arch}.${ext}',
+    icon: 'build/icons/app/icon.ico',
   },
   nsis: {
     oneClick: false,
@@ -36,10 +44,11 @@ export default {
     ],
     category: 'public.app-category.productivity',
     artifactName: '${productName}-${version}-${arch}.${ext}',
+    icon: 'build/icons/app/icon.icns',
   },
   publish: {
     provider: 'generic',
     url: process.env.UPDATE_SERVER_URL ?? 'http://localhost:8888',
-    updaterCacheDirName: 'electron-test-updater',
+    updaterCacheDirName: 'electron-updater',
   },
 }

@@ -1,40 +1,44 @@
-import { ChannelApiImpl, type Port as Port_ } from './impl'
-import { ChannelTimeoutError } from './error'
-import type { ChannelAPI, Handler, InitOptions } from './types'
+import { ChannelApiImpl, type Port as PortType } from './impl'
+import { env } from '@/utils/env'
+import type { ChannelAPI, InitOptions } from './types'
 
-const channelRegistry = new Map<number, Port_>()
+const channelRegistry = (() => {
+  const registry = new Map<number, PortType>()
+
+  if (env.isMain()) {
+    ;(async () => {
+      const { ipcMain } = await import('electron')
+      ipcMain.handle('__channel_request_port__', (event) => {
+        if (!registry.has(event.sender.id)) {
+          throw new Error('Channel port not initialized')
+        }
+        return registry.get(event.sender.id)
+      })
+    })()
+  }
+
+  return registry
+})()
 
 export class Channel implements ChannelAPI {
-  private port: Port_ | null = null
+  private port: PortType | null = null
   private webContentsId: number | null = null
   private api: ChannelApiImpl
 
   constructor() {
-    if (process.env.PROCESS_TYPE === 'renderer') {
+    if (env.isRenderer()) {
       this.api = window.__app_channel__ as unknown as ChannelApiImpl
     } else {
       this.api = new ChannelApiImpl()
     }
   }
 
-  setPort(port: Port_): void {
+  setPort(port: PortType): void {
     this.port = port
     this.api.setPort(port)
   }
 
-  private async registerChannelHandler() {
-    const { ipcMain } = await import('electron')
-
-    ipcMain.handle('__channel_request_port__', (event) => {
-      if (!channelRegistry.has(event.sender.id)) {
-        throw new Error('Channel port not initialized')
-      }
-      return channelRegistry.get(event.sender.id)
-    })
-  }
-
   private async setupMain(webContentsId: number): Promise<void> {
-    await this.registerChannelHandler()
     this.webContentsId = webContentsId
     if (!this.port) {
       const { MessageChannelMain } = await import('electron')
@@ -54,12 +58,12 @@ export class Channel implements ChannelAPI {
     if (options.defaultTimeout !== undefined) {
       this.api.setDefaultTimeout(options.defaultTimeout)
     }
-    if (process.env.PROCESS_TYPE === 'main') {
+    if (env.isMain()) {
       if (options.webContentsId === undefined) {
         throw new Error('webContentsId is required in main process')
       }
       await this.setupMain(options.webContentsId)
-    } else if (process.env.PROCESS_TYPE === 'preload') {
+    } else if (env.isPreload()) {
       await this.setupPreload()
       if (options.expose !== false) {
         const { contextBridge } = await import('electron')
@@ -90,7 +94,7 @@ export class Channel implements ChannelAPI {
   }
 
   destroy(): void {
-    if (process.env.PROCESS_TYPE === 'renderer') {
+    if (env.isRenderer()) {
       return
     }
     if (this.port && 'close' in this.port) {

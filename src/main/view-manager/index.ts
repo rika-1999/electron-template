@@ -37,16 +37,17 @@ export class ViewManager extends TypedEmitter<ViewEventMap> implements ChannelCe
       this.emit('view-ready', id)
     })
 
-    this.views.set(id, view)
-
-    // Load URL and init channel
-    await view.load()
+    // Init channel and load URL before exposing view
     await view.initChannel()
+    await view.load()
 
     // Apply any registered onAnyRequest handlers
     for (const [method, handler] of this.anyRequestHandlers) {
       view.channel.onRequest(method, (payload: unknown) => handler(id, payload))
     }
+
+    // Only add to views map after full initialization
+    this.views.set(id, view)
 
     this.emit('view-created', id, view.state)
     return id
@@ -54,7 +55,9 @@ export class ViewManager extends TypedEmitter<ViewEventMap> implements ChannelCe
 
   destroyView(viewId: string): void {
     const view = this.views.get(viewId)
-    if (!view) {return}
+    if (!view) {
+      return
+    }
 
     view.destroy()
     this.views.delete(viewId)
@@ -84,7 +87,9 @@ export class ViewManager extends TypedEmitter<ViewEventMap> implements ChannelCe
     timeout?: number,
   ): Promise<unknown> {
     const view = this.views.get(viewId)
-    if (!view) {throw new Error(`View not found: ${viewId}`)}
+    if (!view) {
+      throw new Error(`View not found: ${viewId}`)
+    }
     return view.channel.request(method, payload, timeout)
   }
 
@@ -98,7 +103,9 @@ export class ViewManager extends TypedEmitter<ViewEventMap> implements ChannelCe
 
   onRequest(viewId: string, method: string, handler: Handler): void {
     const view = this.views.get(viewId)
-    if (!view) {return}
+    if (!view) {
+      return
+    }
     view.channel.onRequest(method, handler)
   }
 

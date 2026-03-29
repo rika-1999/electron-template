@@ -1,4 +1,5 @@
 import { Menu } from 'electron'
+import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { windowManager } from './window-manager'
 import { viewManager } from './view-manager'
@@ -20,11 +21,15 @@ export async function createMainWindow() {
 
   Menu.setApplicationMenu(null)
 
+  const iconPath = paths.getIconPath()
+  const iconFile = process.platform === 'win32' ? 'icon.ico' : 'icon.png'
+
   const windowId = windowManager.createWindow({
     id: 'main',
     options: {
       width: 1200,
       height: 800,
+      icon: join(iconPath, iconFile),
     },
   })
 
@@ -53,9 +58,6 @@ export async function createMainWindow() {
     view.webContentsView.setBounds({ ...contentBounds, x: 0, y: 0 })
   })
   view.toggleDevTools()
-
-  log.info('Initializing channel')
-  channel.init({ webContentsId: view.webContentsView.webContents.id })
 
   log.info('Main window created successfully')
 }

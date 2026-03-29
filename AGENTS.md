@@ -31,7 +31,7 @@ npx vitest run <file> --project main   # Single file in main project
 | `viewManager`     | `src/main/view-manager/index.ts`      | All `WebContentsView` instances          |
 | `windowManager`   | `src/main/window-manager/index.ts`    | All `BrowserWindow` instances            |
 | `channel`         | `src/shared/channel.ts`               | Default IPC channel (MessageChannelMain) |
-| `serviceRegistry` | `src/shared/serviceRegistry/index.ts` | Service registration and routing         |
+| `serviceRegistry` | `src/shared/serviceRegistry/index.ts` | Service registration, routing & timeouts |
 
 ## Testing Architecture
 
@@ -68,6 +68,10 @@ src/
 ├── shared/                  # Shared types + infrastructure
 │   ├── channel/             # IPC channel (folder structure)
 │   ├── serviceRegistry/      # Service registration center
+│   │   ├── api-definitions.ts # API definition singleton
+│   │   ├── decorators.ts      # @Timeout, @MethodTimeout
+│   │   ├── error.ts           # ServiceTimeoutError
+│   │   └── types.ts           # Service types
 │   ├── services/             # Service API definitions
 │   ├── view.ts
 │   └── window.ts
@@ -76,6 +80,7 @@ src/
 │   ├── serialize/
 │   ├── promise.ts
 │   ├── env.ts
+│   ├── type.ts              # AsyncifyFunctions utility
 │   └── typed-emitter.ts
 ├── vite-plugins/          # Vite plugins
 └── __tests__/              # Test suites
@@ -84,10 +89,11 @@ src/
 
 ## Documentation
 
-| Topic                | File                                                                       |
-| -------------------- | -------------------------------------------------------------------------- |
-| Channel architecture | [docs/channel.md](docs/channel.md)                                         |
-| Service Registry     | [src/shared/serviceRegistry/index.ts](src/shared/serviceRegistry/index.ts) |
-| Code style details   | [docs/code-style.md](docs/code-style.md)                                   |
-| Patterns & testing   | [docs/patterns.md](docs/patterns.md)                                       |
-| Project structure    | [docs/architecture.md](docs/architecture.md)                               |
+| Topic                   | File                                                                       |
+| ----------------------- | -------------------------------------------------------------------------- |
+| Channel architecture    | [docs/channel.md](docs/channel.md)                                         |
+| Service Registry        | [src/shared/serviceRegistry/index.ts](src/shared/serviceRegistry/index.ts) |
+| Service Registry Design | [src/shared/serviceRegistry/types.ts](src/shared/serviceRegistry/types.ts) |
+| Code style details      | [docs/code-style.md](docs/code-style.md)                                   |
+| Patterns & testing      | [docs/patterns.md](docs/patterns.md)                                       |
+| Project structure       | [docs/architecture.md](docs/architecture.md)                               |

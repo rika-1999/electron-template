@@ -95,7 +95,7 @@ describe('ServiceRegistry', () => {
     }
 
     it('should call local implementation when process type matches', async () => {
-      process.env.PROCESS_TYPE = 'main'
+      vi.stubEnv('PROCESS_TYPE', 'main')
 
       const { serviceRegistry } = await import('@/shared/serviceRegistry')
       const testServiceApi = serviceRegistry.defineApi(TestApi, 'main')
@@ -108,7 +108,7 @@ describe('ServiceRegistry', () => {
     })
 
     it('should pass arguments to local implementation', async () => {
-      process.env.PROCESS_TYPE = 'main'
+      vi.stubEnv('PROCESS_TYPE', 'main')
 
       const { serviceRegistry } = await import('@/shared/serviceRegistry')
       const testServiceApi = serviceRegistry.defineApi(TestApi, 'main')
@@ -121,7 +121,7 @@ describe('ServiceRegistry', () => {
     })
 
     it('should use specified channel for remote call', async () => {
-      process.env.PROCESS_TYPE = 'main'
+      vi.stubEnv('PROCESS_TYPE', 'main')
 
       const { serviceRegistry } = await import('@/shared/serviceRegistry')
       const testServiceApi = serviceRegistry.defineApi(TestApi, 'renderer')

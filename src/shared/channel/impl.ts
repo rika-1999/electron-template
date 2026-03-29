@@ -1,4 +1,5 @@
 import { deserialize, serialize } from '@/utils/serialize'
+import { env } from '@/utils/env'
 import { ChannelTimeoutError } from './error'
 import type { ChannelMessage, ChannelRequest, ChannelResponse, Handler } from './types'
 
@@ -26,7 +27,7 @@ export class ChannelApiImpl {
 
   setPort(port: Port): void {
     this.port = port
-    if (process.env.PROCESS_TYPE === 'main') {
+    if (env.isMain()) {
       ;(port as Electron.MessagePortMain).on(
         'message',
         (e: Electron.MessageEvent) => void this.dispatch(e.data),

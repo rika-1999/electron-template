@@ -1,5 +1,6 @@
 import type { LogFunctions } from 'electron-log'
 import { serialize } from '@/utils/serialize'
+import { env } from '@/utils/env'
 import { logSender } from './logSender'
 import type { LogLevel, LogContext } from './types'
 
@@ -32,7 +33,7 @@ export function logger(source: string, ctx?: LogContext): Logger {
   function makeMethod(level: LogLevel) {
     return (...params: unknown[]) => {
       const mergedCtx = { ...globalContext, ...instanceCtx }
-      const serializedParams = params.map(p => serialize(p))
+      const serializedParams = params.map((p) => serialize(p))
       sendLog(level, mergedCtx, serializedParams)
     }
   }
@@ -61,14 +62,14 @@ export const logManager = {
   },
 
   async initLog(config?: LogConfig): Promise<void> {
-    this.setGlobalContext({ ...globalContext, processType: process.env.PROCESS_TYPE })
+    this.setGlobalContext({ ...globalContext, processType: env.getProcessType() })
 
     // Main 进程：配置 electron-log
-    if (process.env.PROCESS_TYPE === 'main') {
+    if (env.isMain()) {
       const mainLog = (await import('electron-log/main')).default
       const path = (await import('path')).default
       mainLog.initialize({ preload: false })
-      
+
       if (config?.level) {
         mainLog.transports.file.level = config.level
         mainLog.transports.console.level = config.level
@@ -84,9 +85,18 @@ export const logManager = {
         ;(mainLog.transports.file as any).resolvePathFn = (variables: any, message?: any) => {
           const ctx = (message?.data?.[0] as LogContext) ?? {}
           const params = message?.data?.slice(1) ?? []
-          const info: MessageInfo = { ctx, params, level: message?.level ?? 'info', timestamp: message?.date ?? new Date() }
+          const info: MessageInfo = {
+            ctx,
+            params,
+            level: message?.level ?? 'info',
+            timestamp: message?.date ?? new Date(),
+          }
           const subDir = userResolveLogPath?.(info) ?? ''
-          return path.join(logDir ?? variables.libraryDefaultDir, subDir, variables.fileName ?? 'main.log')
+          return path.join(
+            logDir ?? variables.libraryDefaultDir,
+            subDir,
+            variables.fileName ?? 'main.log',
+          )
         }
       }
 
@@ -96,7 +106,12 @@ export const logManager = {
           const message = params.message ?? params
           const ctx = (message?.data?.[0] as LogContext) ?? {}
           const rest = message?.data?.slice(1) ?? []
-          const info: MessageInfo = { ctx, params: rest, level: message?.level ?? 'info', timestamp: message?.date ?? new Date() }
+          const info: MessageInfo = {
+            ctx,
+            params: rest,
+            level: message?.level ?? 'info',
+            timestamp: message?.date ?? new Date(),
+          }
           return [userFormat(info)]
         }
         mainLog.transports.file.format = formatWrapper as any
