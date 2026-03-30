@@ -63,9 +63,11 @@ export async function createChannelMock(_options: { webContentsId?: number } = {
   const { port1, port2 } = createMockMessageChannel()
 
   const mainChannel = new Channel()
+  // @ts-expect-error - setPort is public API, but TypeScript types don't expose it
   mainChannel.setPort(port1 as any)
 
   const rendererChannel = new Channel()
+  // @ts-expect-error - setPort is public API, but TypeScript types don't expose it
   rendererChannel.setPort(port2 as any)
 
   return { mainChannel, rendererChannel }

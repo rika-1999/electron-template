@@ -2,17 +2,44 @@ import { ChannelApiImpl, type Port as PortType } from './impl'
 import { env } from '@/utils/env'
 import type { ChannelAPI, InitOptions } from './types'
 
+type MessageChannel = { port1: Electron.MessagePortMain; port2: Electron.MessagePortMain }
+
+type ChannelEntry = {
+  port2: Electron.MessagePortMain | null
+  resetPort: (messageChannel: MessageChannel) => void
+}
+
 const channelRegistry = (() => {
-  const registry = new Map<number, PortType>()
+  const registry = new Map<number, ChannelEntry>()
 
   if (env.isMain()) {
     ;(async () => {
-      const { ipcMain } = await import('electron')
-      ipcMain.handle('__channel_request_port__', (event) => {
-        if (!registry.has(event.sender.id)) {
-          throw new Error('Channel port not initialized')
+      const { ipcMain, webContents } = await import('electron')
+
+      ipcMain.handle('__channel_request_port__', async (event) => {
+        const webContentsId = event.sender.id
+        let entry = registry.get(webContentsId)
+
+        if (!entry) {
+          throw new Error(`Channel not initialized for webContentsId: ${webContentsId}`)
         }
-        return registry.get(event.sender.id)
+
+        const wc = webContents.fromId(webContentsId)
+        if (!wc) {
+          throw new Error('WebContents not found')
+        }
+
+        if (entry.port2 === null) {
+          const { MessageChannelMain } = await import('electron')
+          const { port1, port2 } = new MessageChannelMain()
+          entry.resetPort({ port1, port2 })
+          entry = registry.get(webContentsId)!
+        }
+
+        const portToTransfer = entry.port2!
+        entry.port2 = null
+
+        wc.postMessage('__channel_port_transfer__', null, [portToTransfer])
       })
     })()
   }
@@ -33,9 +60,31 @@ export class Channel implements ChannelAPI {
     }
   }
 
+  private closePort(port: PortType | null): void {
+    if (port && 'close' in port) {
+      try {
+        ;(port as Electron.MessagePortMain).close()
+      } catch {
+        // 忽略清理错误
+      }
+    }
+    this.port = null
+  }
+
   setPort(port: PortType): void {
+    this.closePort(this.port)
     this.port = port
     this.api.setPort(port)
+  }
+
+  private resetPort(messageChannel: MessageChannel): void {
+    this.closePort(this.port)
+    this.port = messageChannel.port1
+    this.api.setPort(messageChannel.port1)
+    channelRegistry.set(this.webContentsId!, {
+      port2: messageChannel.port2,
+      resetPort: this.resetPort.bind(this),
+    })
   }
 
   private async setupMain(webContentsId: number): Promise<void> {
@@ -43,14 +92,34 @@ export class Channel implements ChannelAPI {
     if (!this.port) {
       const { MessageChannelMain } = await import('electron')
       const { port1, port2 } = new MessageChannelMain()
-      this.setPort(port1)
-      channelRegistry.set(webContentsId, port2)
+      this.resetPort({ port1, port2 })
     }
   }
 
   private async setupPreload(): Promise<void> {
+    if (this.port !== null) {
+      throw new Error('Channel port already initialized, cannot request again')
+    }
+
     const { ipcRenderer } = await import('electron')
-    const port = (await ipcRenderer.invoke('__channel_request_port__')) as MessagePort
+
+    const portPromise = new Promise<MessagePort>((resolve, reject) => {
+      const handler = (event: Electron.IpcRendererEvent) => {
+        ipcRenderer.off('__channel_port_transfer__', handler)
+        resolve(event.ports[0])
+      }
+
+      ipcRenderer.on('__channel_port_transfer__', handler)
+
+      setTimeout(() => {
+        ipcRenderer.off('__channel_port_transfer__', handler)
+        reject(new Error('Channel port transfer timeout after 5000ms'))
+      }, 5000)
+    })
+
+    await ipcRenderer.invoke('__channel_request_port__')
+
+    const port = await portPromise
     this.setPort(port)
   }
 
@@ -97,14 +166,13 @@ export class Channel implements ChannelAPI {
     if (env.isRenderer()) {
       return
     }
-    if (this.port && 'close' in this.port) {
-      ;(this.port as Electron.MessagePortMain).close()
-    }
     if (this.webContentsId !== null) {
       channelRegistry.delete(this.webContentsId)
     }
+    this.closePort(this.port)
     this.api.clearPending()
     this.port = null
+    this.webContentsId = null
   }
 }
 
