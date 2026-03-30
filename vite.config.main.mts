@@ -3,6 +3,10 @@ import { builtinModules } from 'node:module'
 import { defineConfig } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import { sourceFilePlugin } from './src/vite-plugins/sourceFilePlugin'
+import { fileURLToPath } from 'node:url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const isDev = process.env.NODE_ENV !== 'production'
 

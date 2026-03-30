@@ -1,10 +1,15 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { createChannelMock } from '@/__tests__/infrastructure/helpers/channel-helpers'
 import { Timeout, MethodTimeout } from '@/shared/serviceRegistry/decorators'
 
 describe('Service Registry Timeout', () => {
   beforeEach(() => {
     vi.stubEnv('PROCESS_TYPE', 'main')
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   describe('@Timeout class decorator', () => {
@@ -48,8 +53,13 @@ describe('Service Registry Timeout', () => {
       const timeoutService = new TimeoutService()
       serviceRegistry.implementService(mainChannel, timeoutService)
 
-      await expect(timeoutApi.slowMethod()).rejects.toThrow(ServiceTimeoutError)
-      await expect(timeoutApi.slowMethod()).rejects.toThrow(
+      const promise = timeoutApi.slowMethod()
+      vi.advanceTimersByTime(600)
+      await expect(promise).rejects.toThrow(ServiceTimeoutError)
+
+      const promise2 = timeoutApi.slowMethod()
+      vi.advanceTimersByTime(600)
+      await expect(promise2).rejects.toThrow(
         "Service 'testtimeout.slowMethod' timed out after 500ms",
       )
     })
@@ -91,7 +101,9 @@ describe('Service Registry Timeout', () => {
       const methodTimeoutService = new MethodTimeoutService()
       serviceRegistry.implementService(mainChannel, methodTimeoutService)
 
-      await expect(methodTimeoutApi.method1()).resolves.toBe('method1-result')
+      const promise = methodTimeoutApi.method1()
+      vi.advanceTimersByTime(500)
+      await expect(promise).resolves.toBe('method1-result')
     })
 
     it('should timeout methods exceeding method-specific timeout', async () => {
@@ -101,8 +113,13 @@ describe('Service Registry Timeout', () => {
       const methodTimeoutService = new MethodTimeoutService()
       serviceRegistry.implementService(mainChannel, methodTimeoutService)
 
-      await expect((methodTimeoutApi as any).method2()).rejects.toThrow(ServiceTimeoutError)
-      await expect((methodTimeoutApi as any).method2()).rejects.toThrow(
+      const promise = (methodTimeoutApi as any).method2()
+      vi.advanceTimersByTime(200)
+      await expect(promise).rejects.toThrow(ServiceTimeoutError)
+
+      const promise2 = (methodTimeoutApi as any).method2()
+      vi.advanceTimersByTime(200)
+      await expect(promise2).rejects.toThrow(
         "Service 'testtimeoutwithclass.method2' timed out after 100ms",
       )
     })
@@ -129,7 +146,9 @@ describe('Service Registry Timeout', () => {
       serviceRegistry.implementService(mainChannel, errorService)
 
       try {
-        await errorApi.timeoutMethod()
+        const promise = errorApi.timeoutMethod()
+        vi.advanceTimersByTime(600)
+        await promise
         expect.fail('Should have thrown ServiceTimeoutError')
       } catch (error) {
         expect(error).toBeInstanceOf(ServiceTimeoutError)
@@ -145,7 +164,9 @@ describe('Service Registry Timeout', () => {
       serviceRegistry.implementService(mainChannel, errorService)
 
       try {
-        await errorApi.timeoutMethod()
+        const promise = errorApi.timeoutMethod()
+        vi.advanceTimersByTime(600)
+        await promise
         expect.fail('Should have thrown ServiceTimeoutError')
       } catch (error) {
         expect((error as Error).message).toContain('error')
@@ -160,7 +181,9 @@ describe('Service Registry Timeout', () => {
       serviceRegistry.implementService(mainChannel, errorService)
 
       try {
-        await errorApi.timeoutMethod()
+        const promise = errorApi.timeoutMethod()
+        vi.advanceTimersByTime(600)
+        await promise
         expect.fail('Should have thrown ServiceTimeoutError')
       } catch (error) {
         expect((error as Error).message).toContain('timeoutMethod')
@@ -175,7 +198,9 @@ describe('Service Registry Timeout', () => {
       serviceRegistry.implementService(mainChannel, errorService)
 
       try {
-        await errorApi.timeoutMethod()
+        const promise = errorApi.timeoutMethod()
+        vi.advanceTimersByTime(600)
+        await promise
         expect.fail('Should have thrown ServiceTimeoutError')
       } catch (error) {
         expect((error as Error).message).toContain('500ms')
@@ -219,8 +244,13 @@ describe('Service Registry Timeout', () => {
       const priorityService = new PriorityService()
       serviceRegistry.implementService(mainChannel, priorityService)
 
-      await expect(priorityApi.methodWithTimeout()).resolves.toBe('result')
-      await expect(priorityApi.methodWithoutTimeout()).rejects.toThrow(ServiceTimeoutError)
+      const promise1 = priorityApi.methodWithTimeout()
+      vi.advanceTimersByTime(600)
+      await expect(promise1).resolves.toBe('result')
+
+      const promise2 = priorityApi.methodWithoutTimeout()
+      vi.advanceTimersByTime(600)
+      await expect(promise2).rejects.toThrow(ServiceTimeoutError)
     })
 
     it('should prioritize class timeout over global timeout', async () => {
@@ -231,7 +261,9 @@ describe('Service Registry Timeout', () => {
       const priorityService = new PriorityService()
       serviceRegistry.implementService(mainChannel, priorityService)
 
-      await expect(priorityApi.methodWithoutTimeout()).rejects.toThrow(ServiceTimeoutError)
+      const promise = priorityApi.methodWithoutTimeout()
+      vi.advanceTimersByTime(600)
+      await expect(promise).rejects.toThrow(ServiceTimeoutError)
     })
 
     it('should use global timeout when no class or method timeout', async () => {
@@ -253,8 +285,13 @@ describe('Service Registry Timeout', () => {
       const noTimeoutService = new NoTimeoutService()
       serviceRegistry.implementService(mainChannel, noTimeoutService)
 
-      await expect(noTimeoutApi.slowMethod()).rejects.toThrow(ServiceTimeoutError)
-      await expect(noTimeoutApi.slowMethod()).rejects.toThrow('timed out after 500ms')
+      const promise1 = noTimeoutApi.slowMethod()
+      vi.advanceTimersByTime(1100)
+      await expect(promise1).rejects.toThrow(ServiceTimeoutError)
+
+      const promise2 = noTimeoutApi.slowMethod()
+      vi.advanceTimersByTime(1100)
+      await expect(promise2).rejects.toThrow('timed out after 500ms')
     })
 
     it('should use built-in default timeout (10000ms) when no timeout configured', async () => {
@@ -278,8 +315,13 @@ describe('Service Registry Timeout', () => {
       const defaultTimeoutService = new CustomDefaultTimeoutService()
       serviceRegistry.implementService(mainChannel, defaultTimeoutService)
 
-      await expect(defaultTimeoutApi.slowMethod()).rejects.toThrow(ServiceTimeoutError)
-      await expect(defaultTimeoutApi.slowMethod()).rejects.toThrow('timed out after 1000ms')
+      const promise1 = defaultTimeoutApi.slowMethod()
+      vi.advanceTimersByTime(1500)
+      await expect(promise1).rejects.toThrow(ServiceTimeoutError)
+
+      const promise2 = defaultTimeoutApi.slowMethod()
+      vi.advanceTimersByTime(1500)
+      await expect(promise2).rejects.toThrow('timed out after 1000ms')
     })
   })
 
@@ -309,7 +351,10 @@ describe('Service Registry Timeout', () => {
       serviceRegistry.implementService(mainChannel, localTimeoutService)
 
       await expect(localTimeoutApi.fastMethod()).resolves.toBe('result')
-      await expect(localTimeoutApi.slowMethod()).rejects.toThrow(ServiceTimeoutError)
+
+      const promise = localTimeoutApi.slowMethod()
+      vi.advanceTimersByTime(200)
+      await expect(promise).rejects.toThrow(ServiceTimeoutError)
     })
   })
 
@@ -392,8 +437,8 @@ describe('Service Registry Timeout', () => {
 
       const promise = crossProcessApi.remoteMethod()
 
-      await new Promise((resolve) => setTimeout(resolve, 50))
-      timeoutCallback?.()
+      vi.advanceTimersByTime(50)
+      ;(timeoutCallback as unknown as () => void)?.()
 
       await expect(promise).rejects.toThrow('Channel timeout')
     })
@@ -444,7 +489,9 @@ describe('Service Registry Timeout', () => {
       const service1 = new Service1()
       serviceRegistry.implementService(mainChannel, service1)
 
-      await expect(api1.method()).rejects.toThrow(ServiceTimeoutError)
+      const promise = api1.method()
+      vi.advanceTimersByTime(300)
+      await expect(promise).rejects.toThrow(ServiceTimeoutError)
     })
 
     it('should override default timeout with class timeout', async () => {
@@ -469,8 +516,13 @@ describe('Service Registry Timeout', () => {
       serviceRegistry.implementService(mainChannel, service)
 
       const { ServiceTimeoutError } = await import('@/shared/serviceRegistry')
-      await expect(api.method()).rejects.toThrow(ServiceTimeoutError)
-      await expect(api.method()).rejects.toThrow('timed out after 500ms')
+      const promise1 = api.method()
+      vi.advanceTimersByTime(600)
+      await expect(promise1).rejects.toThrow(ServiceTimeoutError)
+
+      const promise2 = api.method()
+      vi.advanceTimersByTime(600)
+      await expect(promise2).rejects.toThrow('timed out after 500ms')
     })
   })
 })

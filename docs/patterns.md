@@ -232,3 +232,93 @@ beforeEach(() => {
 ```
 
 **No manual reset needed** — `vi.resetModules()` in setup files re-imports modules, creating fresh singleton instances. Tests run with clean state automatically.
+
+---
+
+## File Extension Conventions
+
+### Configuration Files
+
+**Rule:** All configuration files must use `.mts` extension for ESM compatibility.
+
+**Required imports for ESM compatibility:**
+
+```typescript
+import { fileURLToPath } from 'node:url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+```
+
+**Why this is needed:**
+
+- `.mts` files are treated as ESM by TypeScript and Node.js
+- `__dirname` is not available in ESM - must be manually defined
+- `import.meta.url` provides the current module's URL
+
+**Configuration files:**
+
+- `vite.config.main.mts`
+- `vite.config.renderer.mts`
+- `vite.config.preload.mts`
+- `vitest.config.mts`
+
+**Example:**
+
+```typescript
+// vite.config.main.mts
+import path from 'node:path'
+import { defineConfig } from 'vite'
+import { fileURLToPath } from 'node:url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+export default defineConfig({
+  resolve: {
+    alias: { '@': path.resolve(__dirname, 'src') },
+  },
+  // ...
+})
+```
+
+### Script Files
+
+**Rule:** All JavaScript build scripts must use `.mjs` extension for ESM compatibility.
+
+**Example:**
+
+- `scripts/build.mjs` - Uses `import.meta.url` for ESM module resolution
+
+**Common usage pattern:**
+
+```javascript
+// scripts/build.mjs
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const projectDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..')
+```
+
+### Plugin ESM Loading
+
+**Rule:** When importing ESM-only plugins in CommonJS config files, use dynamic require.
+
+**Example:**
+
+```typescript
+// vite.config.main.mts
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
+const { viteStaticCopy } = require('vite-plugin-static-copy')
+```
+
+### Summary
+
+| File Type         | Extension  | Purpose                                 |
+| ----------------- | ---------- | --------------------------------------- |
+| TypeScript config | `.mts`     | ESM compatibility, explicit \_\_dirname |
+| JavaScript script | `.mjs`     | ESM scripts, import.meta.url support    |
+| Source code       | `.ts`      | Regular TypeScript source files         |
+| Test files        | `.test.ts` | Regular test files                      |

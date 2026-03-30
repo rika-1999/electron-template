@@ -8,11 +8,11 @@ const projectDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..')
 const NODE_ENV = process.env.NODE_ENV || 'development'
 
 const configs = [
-  { name: 'main', config: 'vite.config.main.ts', env: {}},
-  { name: 'preload', config: 'vite.config.preload.ts', env: {} },
-  { name: 'preload-view', config: 'vite.config.preload.ts', env: { PRELOAD_TYPE: 'view' } },
-  { name: 'renderer', config: 'vite.config.renderer.ts',  env: {} },
-].filter(c => NODE_ENV === 'production' || c.name !== 'renderer')
+  { name: 'main', config: 'vite.config.main.mts', env: {} },
+  { name: 'preload', config: 'vite.config.preload.mts', env: {} },
+  { name: 'preload-view', config: 'vite.config.preload.mts', env: { PRELOAD_TYPE: 'view' } },
+  { name: 'renderer', config: 'vite.config.renderer.mts', env: {} },
+].filter((c) => NODE_ENV === 'production' || c.name !== 'renderer')
 
 function run(command, args, options = {}) {
   return new Promise((resolve, reject) => {
@@ -47,13 +47,13 @@ async function build({ name, config, env }) {
 
 async function main() {
   const startTime = Date.now()
-  
+
   await clean()
-  
+
   for (const config of configs) {
     await build(config)
   }
-  
+
   const duration = ((Date.now() - startTime) / 1000).toFixed(2)
   console.log(`\nBuild complete in ${duration}s`)
 }

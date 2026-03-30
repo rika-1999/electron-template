@@ -29,7 +29,7 @@ export async function createMainWindow() {
     options: {
       width: 1200,
       height: 800,
-      icon: join(iconPath, iconFile),
+      icon: join(iconPath, 'app', iconFile),
     },
   })
 
