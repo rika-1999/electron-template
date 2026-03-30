@@ -1,11 +1,13 @@
 import { TypedEmitter } from '@/utils/typed-emitter'
 import { ManagedWindow } from './managed-window'
 import type { WindowOptions, WindowState, WindowEventMap } from '@/shared/window'
+import { Singleton } from '@/utils/singleton'
 
 function generateWindowId(): string {
   return `win-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+@Singleton()
 export class WindowManager extends TypedEmitter<WindowEventMap> {
   private windows = new Map<string, ManagedWindow>()
 
@@ -33,7 +35,9 @@ export class WindowManager extends TypedEmitter<WindowEventMap> {
 
   destroyWindow(windowId: string): void {
     const win = this.windows.get(windowId)
-    if (!win) {return}
+    if (!win) {
+      return
+    }
 
     win.destroy()
     this.windows.delete(windowId)

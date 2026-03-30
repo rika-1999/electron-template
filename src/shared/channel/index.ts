@@ -1,5 +1,6 @@
 import { ChannelApiImpl, type Port as PortType } from './impl'
 import type { ChannelAPI, InitOptions } from './types'
+import { Singleton } from '@/utils/singleton'
 
 type MessageChannel = { port1: Electron.MessagePortMain; port2: Electron.MessagePortMain }
 
@@ -46,6 +47,7 @@ const channelRegistry = (() => {
   return registry
 })()
 
+@Singleton('preload', 'renderer')
 export class Channel implements ChannelAPI {
   private port: PortType | null = null
   private webContentsId: number | null = null

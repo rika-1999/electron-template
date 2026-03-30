@@ -3,7 +3,9 @@ import type { ApiType } from './api-definitions'
 import type { ServiceInfo } from './types'
 import { apiDefinitions } from './api-definitions'
 export { ServiceTimeoutError } from './error'
+import { Singleton } from '@/utils/singleton'
 
+@Singleton()
 export class ServiceRegistry {
   private serviceImplementations = new Map<string, { instance: object; processType: string }>()
 

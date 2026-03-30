@@ -2,11 +2,13 @@ import { TypedEmitter } from '@/utils/typed-emitter'
 import { ManagedView } from './managed-view'
 import type { ViewOptions, ViewState, ViewEventMap } from '@/shared/view'
 import type { Handler, AnyRequestHandler, ChannelCenter, ChannelAPI } from '@/shared/channel'
+import { Singleton } from '@/utils/singleton'
 
 function generateViewId(): string {
   return `view-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+@Singleton()
 export class ViewManager extends TypedEmitter<ViewEventMap> implements ChannelCenter {
   private views = new Map<string, ManagedView>()
   private anyRequestHandlers = new Map<string, AnyRequestHandler>()
