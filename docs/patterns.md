@@ -37,6 +37,90 @@ export const viewManager = new ViewManager()
 export const channel = new Channel()
 ```
 
+## Singleton Decorator
+
+Use `@Singleton()` decorator to enforce singleton behavior for classes that should only have one instance per process type.
+
+### Basic Usage
+
+```typescript
+import { Singleton } from '@/utils/singleton'
+
+@Singleton()
+class MyService {
+  constructor(public value: string) {}
+}
+
+const instance1 = new MyService('first')
+const instance2 = new MyService('second')
+console.log(instance1 === instance2) // true - returns same instance
+```
+
+### Selective Process Types
+
+Specify which process types should use singleton behavior:
+
+```typescript
+// Singleton only in main and renderer processes
+@Singleton('main', 'renderer')
+class SharedService {
+  constructor() {}
+}
+
+// In main/renderer: returns same instance
+// In preload: creates new instance each time
+```
+
+### When to Use
+
+Use `@Singleton()` decorator for:
+
+- **Global state managers** (e.g., ServiceRegistry, WindowManager, ViewManager)
+- **Service classes** with shared resources
+- **IPC channels** that maintain connections
+
+**Existing singleton classes:**
+
+- `ServiceRegistry` - @Singleton()
+- `WindowManager` - @Singleton()
+- `ViewManager` - @Singleton()
+- `UpdaterService` - @Singleton()
+- `Channel` - @Singleton('preload', 'renderer')
+
+### Rules
+
+1. **Use decorator on the class definition**, not the export statement:
+
+   ```typescript
+   @Singleton()
+   class MyService {} // ✓ Correct
+
+   class MyService {}
+   export const service = new MyService() // ✓ Still works, but no decorator protection
+   ```
+
+2. **Specify process types when appropriate:**
+
+   ```typescript
+   @Singleton()                    // All process types (default)
+   @Singleton('main')               // Only main
+   @Singleton('preload', 'renderer') // Multiple process types
+   ```
+
+3. **Constructor parameters are only used on first call:**
+
+   ```typescript
+   @Singleton()
+   class ConfigService {
+     constructor(public config: string) {}
+   }
+
+   const s1 = new ConfigService('config1')
+   const s2 = new ConfigService('config2')
+   console.log(s1.config) // 'config1' - first value kept
+   console.log(s2.config) // 'config1' - second argument ignored
+   ```
+
 ## Managed Resource Cleanup
 
 Always clean up subscriptions and listeners in `destroy()`:
