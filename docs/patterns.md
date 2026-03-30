@@ -202,13 +202,33 @@ describe('Channel (preload mode)', () => {
 
 ### Singleton Reset
 
-For main process tests, call `resetSingletons()` to clear state between tests:
+Setup files automatically handle singleton cleanup between tests:
+
+**Main process** (`infrastructure/setup.ts`):
 
 ```typescript
-import { resetSingletons } from '@/__tests__/infrastructure/setup'
-
-beforeEach(async () => {
+beforeEach(() => {
   vi.clearAllMocks()
-  await resetSingletons()
+  vi.resetModules() // Resets singleton instances
 })
 ```
+
+**Preload** (`infrastructure/setup.preload.ts`):
+
+```typescript
+beforeEach(() => {
+  vi.clearAllMocks()
+  vi.resetModules() // Resets singleton instances
+})
+```
+
+**Renderer** (`infrastructure/setup.renderer.ts`):
+
+```typescript
+beforeEach(() => {
+  vi.clearAllMocks()
+  vi.resetModules() // Resets singleton instances
+})
+```
+
+**No manual reset needed** — `vi.resetModules()` in setup files re-imports modules, creating fresh singleton instances. Tests run with clean state automatically.
