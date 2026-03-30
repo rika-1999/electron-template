@@ -1,5 +1,4 @@
 import type { LogLevel, LogContext } from './types'
-import { env } from '@/utils/env'
 
 export interface LogSender {
   sendLog(level: LogLevel, ctx: LogContext, serializedParams: string[]): void
@@ -13,7 +12,7 @@ async function initSender() {
     return sender
   }
 
-  if (env.isMain()) {
+  if (process.env.PROCESS_TYPE === 'main') {
     const { ipcMain } = await import('electron')
     const mainLog = (await import('electron-log/main')).default
     const sendLog = (level: LogLevel, ctx: LogContext, serializedParams: string[]) => {
@@ -26,14 +25,14 @@ async function initSender() {
       },
     )
     sender = { sendLog }
-  } else if (env.isPreload()) {
+  } else if (process.env.PROCESS_TYPE === 'preload') {
     const { contextBridge, ipcRenderer } = await import('electron')
     const sendLog = (level: LogLevel, ctx: LogContext, serializedParams: string[]) => {
       ipcRenderer.send('__app_log__', { level, ctx, serializedParams })
     }
     contextBridge.exposeInMainWorld('__app_log__', { sendLog })
     sender = { sendLog }
-  } else if (env.isRenderer()) {
+  } else {
     sender = {
       sendLog(level: LogLevel, ctx: LogContext, serializedParams: string[]): void {
         window.__app_log__?.sendLog(level, ctx, serializedParams)

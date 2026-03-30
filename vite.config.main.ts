@@ -41,14 +41,14 @@ export default defineConfig({
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-    'process.env.PROCESS_TYPE': JSON.stringify('main'),
+    'process.env.PROCESS_TYPE': JSON.stringify('main') as 'main' | 'preload' | 'renderer',
     'process.env.UPDATE_SERVER_URL': JSON.stringify(process.env.UPDATE_SERVER_URL ?? ''),
     'process.env.AUTO_CHECK_ON_STARTUP': JSON.stringify(
       process.env.AUTO_CHECK_ON_STARTUP ?? 'true',
     ),
     'process.env.AUTO_DOWNLOAD': JSON.stringify(process.env.AUTO_DOWNLOAD ?? 'false'),
     'process.env.UPDATE_CHECK_INTERVAL': JSON.stringify(
-     process.env.UPDATE_CHECK_INTERVAL ?? '3600000',
+      process.env.UPDATE_CHECK_INTERVAL ?? '3600000',
     ),
   },
 })

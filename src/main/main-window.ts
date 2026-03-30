@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { windowManager } from './window-manager'
 import { viewManager } from './view-manager'
-import { env } from '@/utils/env'
+import { isDev } from '@/utils/env'
 import { paths } from './utils/paths'
 import { channel } from '@/shared/channel'
 import { logger } from '@/utils/log'
@@ -11,7 +11,7 @@ import { logger } from '@/utils/log'
 const log = logger(__SOURCE_FILE__)
 
 export async function createMainWindow() {
-  log.info('Creating main window, env:', env.isDev() ? 'development' : 'production')
+  log.info('Creating main window, env:', isDev() ? 'development' : 'production')
   const existing = windowManager.getWindow('main')
   if (existing) {
     log.info('Main window already exists, showing it')
@@ -35,9 +35,7 @@ export async function createMainWindow() {
 
   const win = windowManager.getNativeWindow(windowId)!
 
-  const viewUrl = env.isDev()
-    ? 'http://localhost:5173'
-    : pathToFileURL(paths.getRendererPath()).href
+  const viewUrl = isDev() ? 'http://localhost:5173' : pathToFileURL(paths.getRendererPath()).href
 
   log.info('Loading view URL:', viewUrl)
 

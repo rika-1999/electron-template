@@ -6,13 +6,14 @@ All detailed guidance is in **AGENTS.md** — commands, code style, naming conve
 
 ## Quick Reference
 
-| Command | Description |
-|---------|-------------|
-| `pnpm run dev` | Build dev assets + start Electron with hot reload |
-| `pnpm run build` | Production build (main/preload/renderer) |
-| `pnpm run dist:win` | Build + package for Windows (NSIS x64) |
-| `pnpm run lint -- --fix` | Auto-fix lint issues |
-| `npx vitest run <file>` | Run single test file |
+| Command                  | Description                                       |
+| ------------------------ | ------------------------------------------------- |
+| `pnpm run dev`           | Build dev assets + start Electron with hot reload |
+| `pnpm run build`         | Production build (main/preload/renderer)          |
+| `pnpm run package:win`   | Build + package for Windows (NSIS x64)            |
+| `pnpm run package`       | Build + package for all platforms                 |
+| `pnpm run lint -- --fix` | Auto-fix lint issues                              |
+| `npx vitest run <file>`  | Run single test file                              |
 
 ## Key Architecture
 

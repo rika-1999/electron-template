@@ -1,6 +1,5 @@
 import type { LogFunctions } from 'electron-log'
 import { serialize } from '@/utils/serialize'
-import { env } from '@/utils/env'
 import { logSender } from './logSender'
 import type { LogLevel, LogContext } from './types'
 
@@ -62,10 +61,13 @@ export const logManager = {
   },
 
   async initLog(config?: LogConfig): Promise<void> {
-    this.setGlobalContext({ ...globalContext, processType: env.getProcessType() })
+    this.setGlobalContext({
+      ...globalContext,
+      processType: process.env.PROCESS_TYPE as 'main' | 'preload' | 'renderer',
+    })
 
     // Main 进程：配置 electron-log
-    if (env.isMain()) {
+    if (process.env.PROCESS_TYPE === 'main') {
       const mainLog = (await import('electron-log/main')).default
       const path = (await import('path')).default
       mainLog.initialize({ preload: false })

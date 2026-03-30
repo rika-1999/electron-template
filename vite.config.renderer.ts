@@ -7,6 +7,7 @@ const isDev = process.env.NODE_ENV !== 'production'
 
 export default defineConfig({
   root: 'src/renderer',
+  base: './',
   resolve: {
     alias: { '@': path.resolve(__dirname, 'src') },
   },
@@ -17,7 +18,7 @@ export default defineConfig({
   plugins: [react(), sourceFilePlugin()],
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-    'process.env.PROCESS_TYPE': JSON.stringify('renderer'),
+    'process.env.PROCESS_TYPE': JSON.stringify('renderer') as 'main' | 'preload' | 'renderer',
   },
   server: {
     port: 5173,

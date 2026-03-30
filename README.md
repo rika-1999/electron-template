@@ -44,10 +44,10 @@ pnpm run lint
 
 ```bash
 # Windows installer (NSIS x64)
-pnpm run dist:win
+pnpm run package:win
 
 # All platforms (current OS)
-pnpm run dist
+pnpm run package
 ```
 
 Output goes to `release/`.

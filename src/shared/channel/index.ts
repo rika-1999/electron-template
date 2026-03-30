@@ -1,5 +1,4 @@
 import { ChannelApiImpl, type Port as PortType } from './impl'
-import { env } from '@/utils/env'
 import type { ChannelAPI, InitOptions } from './types'
 
 type MessageChannel = { port1: Electron.MessagePortMain; port2: Electron.MessagePortMain }
@@ -12,7 +11,7 @@ type ChannelEntry = {
 const channelRegistry = (() => {
   const registry = new Map<number, ChannelEntry>()
 
-  if (env.isMain()) {
+  if (process.env.PROCESS_TYPE === 'main') {
     ;(async () => {
       const { ipcMain, webContents } = await import('electron')
 
@@ -53,7 +52,7 @@ export class Channel implements ChannelAPI {
   private api: ChannelApiImpl
 
   constructor() {
-    if (env.isRenderer()) {
+    if (process.env.PROCESS_TYPE === 'renderer') {
       this.api = window.__app_channel__ as unknown as ChannelApiImpl
     } else {
       this.api = new ChannelApiImpl()
@@ -127,12 +126,12 @@ export class Channel implements ChannelAPI {
     if (options.defaultTimeout !== undefined) {
       this.api.setDefaultTimeout(options.defaultTimeout)
     }
-    if (env.isMain()) {
+    if (process.env.PROCESS_TYPE === 'main') {
       if (options.webContentsId === undefined) {
         throw new Error('webContentsId is required in main process')
       }
       await this.setupMain(options.webContentsId)
-    } else if (env.isPreload()) {
+    } else if (process.env.PROCESS_TYPE === 'preload') {
       await this.setupPreload()
       if (options.expose !== false) {
         const { contextBridge } = await import('electron')
@@ -163,7 +162,7 @@ export class Channel implements ChannelAPI {
   }
 
   destroy(): void {
-    if (env.isRenderer()) {
+    if (process.env.PROCESS_TYPE === 'renderer') {
       return
     }
     if (this.webContentsId !== null) {

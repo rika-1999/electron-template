@@ -1,6 +1,5 @@
 import type { ChannelLike } from '@/shared/channel/types'
 import { AsyncifyFunctions } from '@/utils/type'
-import { env } from '@/utils/env'
 import { ServiceTimeoutError } from './error'
 
 export type ApiType<T> = AsyncifyFunctions<T> & {
@@ -91,7 +90,7 @@ export const apiDefinitions = (() => {
         }
 
         if (typeof prop === 'string') {
-          if (env.getProcessType() === processType) {
+          if (process.env.PROCESS_TYPE === processType) {
             return (...args: unknown[]) => {
               const impl = getServiceImplementation(serviceName)
               if (!impl?.instance) {

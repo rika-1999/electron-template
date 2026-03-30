@@ -34,6 +34,6 @@ export default defineConfig({
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-    'process.env.PROCESS_TYPE': JSON.stringify('preload'),
+    'process.env.PROCESS_TYPE': JSON.stringify('preload') as 'main' | 'preload' | 'renderer',
   },
 })

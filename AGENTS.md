@@ -13,7 +13,8 @@ Electron 34 + React 18 + TypeScript desktop app with MessagePort-based IPC. Thre
 ```bash
 pnpm run dev              # Build dev + start Electron
 pnpm run build            # Production build
-pnpm run dist:win         # Package for Windows
+pnpm run package:win      # Package for Windows
+pnpm run package          # Package for all platforms
 pnpm run lint             # Lint code (eslint src)
 npx eslint src --fix      # Lint and auto-fix
 pnpm run test             # Run all tests
