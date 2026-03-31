@@ -6,9 +6,7 @@
   "main": "dist/main/index.js",
   "packageManager": "pnpm@9.0.0",
   "scripts": {
-    "build:dev": "node scripts/build.mjs",
-    "start": "concurrently -k \"vite --config vite.config.renderer.mts\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .\"",
-    "dev": "pnpm run build:dev && pnpm run start",
+    "dev": "node scripts/dev.mjs",
     "build": "cross-env NODE_ENV=production node scripts/build.mjs",
     "package": "pnpm run build && electron-builder",
     "package:win": "pnpm run build && electron-builder --win",

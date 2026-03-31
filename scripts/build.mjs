@@ -12,7 +12,7 @@ const configs = [
   { name: 'preload', config: 'vite.config.preload.mts', env: {} },
   { name: 'preload-view', config: 'vite.config.preload.mts', env: { PRELOAD_TYPE: 'view' } },
   { name: 'renderer', config: 'vite.config.renderer.mts', env: {} },
-].filter((c) => NODE_ENV === 'production' || c.name !== 'renderer')
+]
 
 function run(command, args, options = {}) {
   return new Promise((resolve, reject) => {
@@ -47,10 +47,27 @@ async function build({ name, config, env }) {
 
 async function main() {
   const startTime = Date.now()
+  const buildTargets = process.argv.slice(2)
+
+  let configsToBuild = configs
+
+  if (buildTargets.length > 0) {
+    configsToBuild = configs.filter((c) => buildTargets.includes(c.name))
+
+    if (configsToBuild.length === 0) {
+      console.error(`❌ Unknown build targets: ${buildTargets.join(', ')}`)
+      console.error(`Available targets: ${configs.map((c) => c.name).join(', ')}`)
+      process.exit(1)
+    }
+
+    console.log(`Building: ${configsToBuild.map((c) => c.name).join(', ')}`)
+  } else {
+    configsToBuild = configs
+  }
 
   await clean()
 
-  for (const config of configs) {
+  for (const config of configsToBuild) {
     await build(config)
   }
 

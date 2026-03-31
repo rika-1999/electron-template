@@ -25,6 +25,7 @@ export default defineConfig({
     'process.env.PROCESS_TYPE': JSON.stringify('renderer') as 'main' | 'preload' | 'renderer',
   },
   server: {
+    host: true,
     port: 5173,
     strictPort: true,
   },
