@@ -3,7 +3,7 @@ import { logManager } from '@/utils/log'
 import { initUpdater } from './updater'
 import { appTray } from './tray'
 import { registerUpdaterIpc } from './ipc'
-import { createMainWindow } from './main-window'
+import { createMainWindow } from './mainWindow'
 import { registerMainServices } from './services'
 import { serialize } from '@/utils/serialize'
 

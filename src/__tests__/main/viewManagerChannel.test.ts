@@ -1,12 +1,12 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { createChannelMock } from '@/__tests__/infrastructure/helpers/channel-helpers'
+import { createChannelMock } from '@/__tests__/infrastructure/helpers/channelHelpers'
 import type { ChannelAPI } from '@/shared/channel'
 
 async function createTestView(url: string): Promise<{ viewId: string; channel: ChannelAPI }> {
   const { mainChannel, rendererChannel } = await createChannelMock()
 
   const viewId = await (
-    await import('@/main/view-manager')
+    await import('@/main/viewManager')
   ).viewManager.createView({
     url,
     channel: mainChannel as any,
@@ -17,10 +17,10 @@ async function createTestView(url: string): Promise<{ viewId: string; channel: C
 }
 
 describe('ViewManager - Channel Communication', () => {
-  let viewManager: import('@/main/view-manager/index').ViewManager
+  let viewManager: import('@/main/viewManager/index').ViewManager
 
   beforeEach(async () => {
-    viewManager = (await import('@/main/view-manager')).viewManager
+    viewManager = (await import('@/main/viewManager')).viewManager
   })
 
   describe('requestTo', () => {

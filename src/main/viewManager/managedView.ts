@@ -1,5 +1,5 @@
 import { WebContentsView } from 'electron'
-import { TypedEmitter } from '@/utils/typed-emitter'
+import { TypedEmitter } from '@/utils/typedEmitter'
 import { Channel } from '@/shared/channel'
 import type { ViewState, ViewType, ManagedViewEventMap } from '@/shared/view'
 import type { ManagedView as IManagedView } from './types'

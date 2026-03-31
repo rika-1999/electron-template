@@ -143,7 +143,7 @@ await channel.request(`${serviceName}:${methodName}`, args, timeout)
 ```
 src/shared/serviceRegistry/
 ├── index.ts              # ServiceRegistry 主类（简化）
-├── api-definitions.ts    # 单例工具：defineApi、apiDefinitions、defaultTimeout、defaultChannel（新增）
+├── apiDefinitions.ts    # 单例工具：defineApi、apiDefinitions、defaultTimeout、defaultChannel（新增）
 ├── decorators.ts         # 装饰器实现（新增）
 └── error.ts              # ServiceTimeoutError（新增）
 
@@ -153,7 +153,7 @@ src/__tests__/main/services/
 
 **代码分离说明：**
 
-- `api-definitions.ts`：单例工具，导出 `apiDefinitions` 对象，包含 defineApi、apiDefinitions Map、defaultTimeout、defaultChannel
+- `apiDefinitions.ts`：单例工具，导出 `apiDefinitions` 对象，包含 defineApi、apiDefinitions Map、defaultTimeout、defaultChannel
 - `index.ts`：负责服务注册管理（serviceImplementations），持有并使用 `apiDefinitions` 单例
 - `decorators.ts`：装饰器实现
 - `error.ts`：错误类型
@@ -253,7 +253,7 @@ class ServiceTimeoutError extends Error {
 
 ### 步骤 0: 代码重构（分离 defineApi 逻辑）
 
-**目标**：将 `defineApi` 及其相关逻辑从 `index.ts` 分离到独立的 `api-definitions.ts` 文件，作为一个单例工具。
+**目标**：将 `defineApi` 及其相关逻辑从 `index.ts` 分离到独立的 `apiDefinitions.ts` 文件，作为一个单例工具。
 
 **依赖分析：**
 
@@ -267,7 +267,7 @@ class ServiceTimeoutError extends Error {
 | `defaultChannel`         | 默认 channel  | ✅ 可以 | 由 apiDefinitions 单例管理 |
 | `serviceImplementations` | 存储实现      | ❌ 不行 | ServiceRegistry 核心状态   |
 
-**创建 `src/shared/serviceRegistry/api-definitions.ts`：**
+**创建 `src/shared/serviceRegistry/apiDefinitions.ts`：**
 
 ```typescript
 import type { ChannelLike } from './index'
@@ -485,7 +485,7 @@ export const apiDefinitions = (() => {
 
 ```typescript
 import type { ChannelLike } from '@/shared/channel/types'
-import { apiDefinitions } from './api-definitions'
+import { apiDefinitions } from './apiDefinitions'
 
 export interface ServiceInfo {
   serviceName: string
@@ -640,7 +640,7 @@ export * from './api-proxy'
 
 **重构验证清单：**
 
-- [ ] `api-definitions.ts` 正确导出 `apiDefinitions` 单例
+- [ ] `apiDefinitions.ts` 正确导出 `apiDefinitions` 单例
 - [ ] `apiDefinitions` 使用闭包隐藏内部实现
 - [ ] `apiDefinitions` 包含 `defaultTimeout` 和 `defaultChannel`，可通过 set 修改
 - [ ] `apiDefinitions` 包含 `getServiceImplementation` 闭包变量，通过 `setServiceImplementationGetter()` 设置
@@ -662,7 +662,7 @@ export * from './api-proxy'
 - [ ] 超时错误类型正确
 - [ ] 全局默认值配置有效
 - [ ] 无装饰器时使用默认值
-- [ ] **代码分离完成**：defineApi 及相关逻辑已移至 `api-definitions.ts` 单例
+- [ ] **代码分离完成**：defineApi 及相关逻辑已移至 `apiDefinitions.ts` 单例
 - [ ] **闭包设计**：`apiDefinitions` 使用闭包隐藏内部函数和状态
 - [ ] **单例设计**：`apiDefinitions` 包含 defaultTimeout 和 defaultChannel，可被 set 修改
 - [ ] **单例设计**：`apiDefinitions` 包含 getServiceImplementation 闭包变量，通过 setServiceImplementationGetter() 设置

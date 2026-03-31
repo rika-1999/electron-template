@@ -1,5 +1,5 @@
-import { TypedEmitter } from '@/utils/typed-emitter'
-import { ManagedView } from './managed-view'
+import { TypedEmitter } from '@/utils/typedEmitter'
+import { ManagedView } from './managedView'
 import type { ViewOptions, ViewState, ViewEventMap } from '@/shared/view'
 import type { Handler, AnyRequestHandler, ChannelCenter, ChannelAPI } from '@/shared/channel'
 import { Singleton } from '@/utils/singleton'

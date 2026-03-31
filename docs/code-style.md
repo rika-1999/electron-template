@@ -54,7 +54,7 @@ import type { WindowState, ViewOptions } from '@/shared/window'
 
 // Internal modules (path alias)
 import { Channel } from '@/shared/channel'
-import { viewManager } from '@/main/view-manager'
+import { viewManager } from '@/main/viewManager'
 
 // Relative imports for sibling modules
 import { paths } from '../utils/paths'

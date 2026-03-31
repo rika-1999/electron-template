@@ -6,7 +6,7 @@
 
 **Architecture:**
 
-- Extract `defineApi` and related logic into `api-definitions.ts` as a closure-based singleton
+- Extract `defineApi` and related logic into `apiDefinitions.ts` as a closure-based singleton
 - Add decorators for class-level and method-level timeout configuration
 - Add `ServiceTimeoutError` for timeout failures
 - Simplify `ServiceRegistry` to use `apiDefinitions` singleton
@@ -25,7 +25,7 @@
 ```
 src/shared/serviceRegistry/
 ├── index.ts              # ServiceRegistry (modify - simplify, use apiDefinitions)
-├── api-definitions.ts    # Closure singleton with defineApi, timeout handling (create)
+├── apiDefinitions.ts    # Closure singleton with defineApi, timeout handling (create)
 ├── decorators.ts         # @Timeout and @MethodTimeout decorators (create)
 └── error.ts              # ServiceTimeoutError (create)
 
@@ -35,13 +35,13 @@ src/__tests__/main/services/
 
 ---
 
-### Task 1: Create api-definitions.ts Closure Singleton
+### Task 1: Create apiDefinitions.ts Closure Singleton
 
 **Files:**
 
-- Create: `src/shared/serviceRegistry/api-definitions.ts`
+- Create: `src/shared/serviceRegistry/apiDefinitions.ts`
 
-- [ ] **Step 1: Write api-definitions.ts with closure pattern**
+- [ ] **Step 1: Write apiDefinitions.ts with closure pattern**
 
 ```typescript
 import type { ChannelLike } from './index'
@@ -252,15 +252,15 @@ export const apiDefinitions = (() => {
 })()
 ```
 
-- [ ] **Step 2: Create error.ts (dependency for api-definitions)**
+- [ ] **Step 2: Create error.ts (dependency for apiDefinitions)**
 
 See Task 3.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/shared/serviceRegistry/api-definitions.ts src/shared/serviceRegistry/error.ts
-git commit -m "feat: add api-definitions closure singleton with timeout support"
+git add src/shared/serviceRegistry/apiDefinitions.ts src/shared/serviceRegistry/error.ts
+git commit -m "feat: add apiDefinitions closure singleton with timeout support"
 ```
 
 ---
@@ -344,7 +344,7 @@ git commit -m "feat: add ServiceTimeoutError"
 
 ```typescript
 import type { ChannelLike, ChannelCenter } from '@/shared/channel/types'
-import { apiDefinitions } from './api-definitions'
+import { apiDefinitions } from './apiDefinitions'
 import * as Decorators from './decorators'
 
 export interface ServiceInfo {
@@ -500,7 +500,7 @@ git commit -m "refactor: simplify ServiceRegistry using apiDefinitions singleton
 
 ```typescript
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { createChannelMock } from '@/__tests__/infrastructure/helpers/channel-helpers'
+import { createChannelMock } from '@/__tests__/infrastructure/helpers/channelHelpers'
 import { Timeout, MethodTimeout } from '@/shared/serviceRegistry/decorators'
 import { ServiceTimeoutError } from '@/shared/serviceRegistry/error'
 import { serviceRegistry } from '@/shared/serviceRegistry'
@@ -700,7 +700,7 @@ describe('ServiceRegistry Timeout', () => {
 pnpm run test:main -- timeout.test.ts
 ```
 
-Expected: Tests fail because api-definitions and decorators not yet created
+Expected: Tests fail because apiDefinitions and decorators not yet created
 
 - [ ] **Step 3: Commit**
 
@@ -748,7 +748,7 @@ git commit --allow-empty -m "test: verify all tests pass after timeout implement
 ## Verification Checklist
 
 - [ ] All tasks completed with checkboxes checked
-- [ ] api-definitions.ts created with closure pattern
+- [ ] apiDefinitions.ts created with closure pattern
 - [ ] decorators.ts created with @Timeout and @MethodTimeout
 - [ ] error.ts created with ServiceTimeoutError
 - [ ] ServiceRegistry simplified to use apiDefinitions

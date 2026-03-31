@@ -14,8 +14,8 @@ Electron runs in 3 process types:
 
 | Singleton         | Location                              | Responsibility                           |
 | ----------------- | ------------------------------------- | ---------------------------------------- |
-| `viewManager`     | `src/main/view-manager/index.ts`      | All `WebContentsView` instances          |
-| `windowManager`   | `src/main/window-manager/index.ts`    | All `BrowserWindow` instances            |
+| `viewManager`     | `src/main/viewManager/index.ts`       | All `WebContentsView` instances          |
+| `windowManager`   | `src/main/windowManager/index.ts`     | All `BrowserWindow` instances            |
 | `channel`         | `src/shared/channel.ts`               | Default IPC channel (MessageChannelMain) |
 | `serviceRegistry` | `src/shared/serviceRegistry/index.ts` | Service registration and routing         |
 
@@ -45,14 +45,14 @@ The `ServiceRegistry` provides a unified way to define and implement services ac
 **Example**:
 
 ```typescript
-// Define API in shared/services/updater-api.ts
+// Define API in shared/services/updaterApi.ts
 export abstract class UpdaterApi {
   abstract checkForUpdates(): Promise<void>
   abstract quitAndInstall(): Promise<void>
 }
 export const updaterServiceApi = serviceRegistry.defineApi(UpdaterApi, 'main')
 
-// Implement in main/services/updater-service.ts
+// Implement in main/services/updaterService.ts
 class UpdaterService extends UpdaterApi {
   async checkForUpdates() {
     /* implementation */
@@ -76,14 +76,14 @@ See `src/shared/serviceRegistry/index.ts` for full API.
 src/
 ├── main/                    # Main process
 │   ├── index.ts           # App entry, exports singletons
-│   ├── main-window.ts     # Main BrowserWindow creation
+│   ├── mainWindow.ts     # Main BrowserWindow creation
 │   ├── ipc.ts             # IPC handler registration
 │   ├── assets/            # App assets (icon)
 │   ├── updater/           # Auto-update service
 │   ├── tray/              # System tray
 │   ├── utils/paths.ts    # Runtime path helpers
-│   ├── view-manager/      # WebContentsView management
-│   ├── window-manager/    # BrowserWindow management
+│   ├── viewManager/      # WebContentsView management
+│   ├── windowManager/    # BrowserWindow management
 │   └── services/         # Service implementations (main process)
 ├── preload/                # Preload scripts
 │   ├── index.ts          # Main window preload
@@ -98,17 +98,17 @@ src/
 ├── utils/                  # Shared utilities
 │   ├── log/              # electron-log wrapper
 │   ├── serialize/        # Serialization utils
-│   ├── typed-emitter.ts  # Lightweight event emitter
+│   ├── typedEmitter.ts  # Lightweight event emitter
 │   ├── env.ts
 │   └── promise.ts
-├── vite-plugins/          # Vite plugins
+├── vitePlugins/          # Vite plugins
 ├── __tests__/              # Test suites (main, preload, integration)
 │   └── infrastructure/    # Test infrastructure
 │       ├── setup.ts           # main project — electron mock, vi.resetModules
 │       ├── setup.preload.ts   # preload project — electron mock, vi.resetModules
 │       ├── setup.renderer.ts  # renderer project — jest-dom, vi.resetModules
 │       ├── mocks/electron.ts  # Shared electron mock objects
-│       └── helpers/           # Test helpers (msw, data-helper, create-mocks)
+│       └── helpers/           # Test helpers (msw, dataHelper, create-mocks)
 ```
 
 ## Path Alias

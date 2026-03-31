@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import { createMockMessageChannel } from '../helpers/channel-helpers'
+import { createMockMessageChannel } from '../helpers/channelHelpers'
 
 // Singleton mock instances — shared by setup AND test assertions
 export const mockApp = {

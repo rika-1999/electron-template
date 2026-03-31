@@ -115,7 +115,7 @@ The `init()` method accepts an optional `expose` option (`true` by default). Set
 - **background** — offscreen rendering (`offscreen: true`), no window attachment
 
 ```ts
-import { viewManager } from '@/main/view-manager'
+import { viewManager } from '@/main/viewManager'
 
 // Create a sub-window
 const viewId = await viewManager.createView({
@@ -161,10 +161,10 @@ src/
 │   ├── updater/
 │   │   ├── index.ts          # Auto-update service
 │   │   └── types.ts          # Update types
-│   ├── view-manager/
+│   ├── viewManager/
 │   │   ├── index.ts          # ViewManager class + singleton export
 │   │   ├── index.test.ts     # ViewManager unit tests
-│   │   ├── managed-view.ts   # ManagedView: WebContentsView + ChannelInstance wrapper
+│   │   ├── managedView.ts   # ManagedView: WebContentsView + ChannelInstance wrapper
 │   │   └── types.ts          # Internal types (ManagedView interface, handler types)
 │   └── utils/
 │       └── paths.ts          # Runtime path helpers (preload, view-preload)
@@ -183,10 +183,10 @@ src/
 │   │   ├── index.ts          # ChannelInstance class + default channel singleton
 │   │   ├── index.test.ts     # Channel unit tests
 │   │   └── types.ts          # Channel message protocol types (ChannelAPI, etc.)
-│   ├── typed-emitter.ts      # Lightweight type-safe event emitter
+│   ├── typedEmitter.ts      # Lightweight type-safe event emitter
 │   ├── env.ts                # Process environment helpers
 │   └── log.ts                # Unified logger (electron-log wrapper)
-├── vite-plugins/
+├── vitePlugins/
 │   └── sourceFilePlugin.ts   # Vite plugin: injects __SOURCE_FILE__
 └── test/
     └── setup.ts

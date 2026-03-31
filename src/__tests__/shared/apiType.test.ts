@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { serviceRegistry } from '@/shared/serviceRegistry'
-import type { ApiType } from '@/shared/serviceRegistry/api-definitions'
+import type { ApiType } from '@/shared/serviceRegistry/apiDefinitions'
 
 abstract class TestApi {
   abstract syncMethod(): string

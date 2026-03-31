@@ -145,7 +145,7 @@ viewManager.onAnyRequest('method', (viewId, payload) => {
 For higher-level service abstraction, use the ServiceRegistry instead of direct channel calls:
 
 ```typescript
-import { updaterServiceApi } from '@/shared/services/updater-api'
+import { updaterServiceApi } from '@/shared/services/updaterApi'
 
 // Auto-routing: same process invokes directly, cross-process uses channel
 await updaterServiceApi.checkForUpdates()

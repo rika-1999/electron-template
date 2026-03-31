@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { createChannelMock } from '@/__tests__/infrastructure/helpers/channel-helpers'
+import { createChannelMock } from '@/__tests__/infrastructure/helpers/channelHelpers'
 import { Timeout, MethodTimeout } from '@/shared/serviceRegistry/decorators'
 
 describe('Service Registry Timeout', () => {

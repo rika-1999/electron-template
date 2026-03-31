@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createChannelMock } from '@/__tests__/infrastructure/helpers/channel-helpers'
+import { createChannelMock } from '@/__tests__/infrastructure/helpers/channelHelpers'
 
 describe('Channel', () => {
   describe('request', () => {

@@ -2,7 +2,7 @@ import path from 'node:path'
 import { builtinModules } from 'node:module'
 import { defineConfig } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
-import { sourceFilePlugin } from './src/vite-plugins/sourceFilePlugin'
+import { sourceFilePlugin } from './src/vitePlugins/sourceFilePlugin'
 import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)

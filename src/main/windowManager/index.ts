@@ -1,5 +1,5 @@
-import { TypedEmitter } from '@/utils/typed-emitter'
-import { ManagedWindow } from './managed-window'
+import { TypedEmitter } from '@/utils/typedEmitter'
+import { ManagedWindow } from './managedWindow'
 import type { WindowOptions, WindowState, WindowEventMap } from '@/shared/window'
 import { Singleton } from '@/utils/singleton'
 

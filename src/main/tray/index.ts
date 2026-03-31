@@ -1,5 +1,5 @@
 import { Tray, Menu, nativeImage, app } from 'electron'
-import { windowManager } from '../window-manager'
+import { windowManager } from '../windowManager'
 import { paths } from '../utils/paths'
 
 let tray: Tray | null = null

@@ -1,5 +1,5 @@
 import { BaseWindow, app } from 'electron'
-import { TypedEmitter } from '@/utils/typed-emitter'
+import { TypedEmitter } from '@/utils/typedEmitter'
 import type { WindowState, WindowOptions, ManagedWindowEventMap } from '@/shared/window'
 import type { ManagedWindow as IManagedWindow } from './types'
 
@@ -72,7 +72,9 @@ export class ManagedWindow extends TypedEmitter<ManagedWindowEventMap> implement
   }
 
   isVisible(): boolean {
-    if (this.nativeWindow.isDestroyed()) {return false}
+    if (this.nativeWindow.isDestroyed()) {
+      return false
+    }
     return this.nativeWindow.isVisible()
   }
 

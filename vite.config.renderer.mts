@@ -1,7 +1,7 @@
 import path from 'node:path'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-import { sourceFilePlugin } from './src/vite-plugins/sourceFilePlugin'
+import { sourceFilePlugin } from './src/vitePlugins/sourceFilePlugin'
 import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)

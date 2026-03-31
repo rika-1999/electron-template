@@ -29,8 +29,8 @@ npx vitest run <file> --project main   # Single file in main project
 
 | Singleton         | Location                              | Responsibility                           |
 | ----------------- | ------------------------------------- | ---------------------------------------- |
-| `viewManager`     | `src/main/view-manager/index.ts`      | All `WebContentsView` instances          |
-| `windowManager`   | `src/main/window-manager/index.ts`    | All `BrowserWindow` instances            |
+| `viewManager`     | `src/main/viewManager/index.ts`       | All `WebContentsView` instances          |
+| `windowManager`   | `src/main/windowManager/index.ts`     | All `BrowserWindow` instances            |
 | `channel`         | `src/shared/channel.ts`               | Default IPC channel (MessageChannelMain) |
 | `serviceRegistry` | `src/shared/serviceRegistry/index.ts` | Service registration, routing & timeouts |
 
@@ -50,6 +50,7 @@ Three Vitest projects:
 
 ## Code Style Summary
 
+- **Naming**: File names and folder names must use camelCase (no hyphens)
 - **ESLint**: `curly: ['error', 'all']` — all control bodies must use `{}`
 - **Prettier**: no semicolons, single quotes, trailing commas, print width 100
 - **TypeScript**: strict mode, use `unknown` instead of `any`
@@ -61,15 +62,15 @@ Three Vitest projects:
 ```
 src/
 ├── main/                    # Main process
-│   ├── view-manager/         # WebContentsView management
-│   ├── window-manager/       # BrowserWindow management
+│   ├── viewManager/         # WebContentsView management
+│   ├── windowManager/       # BrowserWindow management
 │   └── services/             # Service implementations (main process)
 ├── preload/                 # Preload scripts
 ├── renderer/                # React SPA
 ├── shared/                  # Shared types + infrastructure
 │   ├── channel/             # IPC channel (folder structure)
 │   ├── serviceRegistry/      # Service registration center
-│   │   ├── api-definitions.ts # API definition singleton
+│   │   ├── apiDefinitions.ts # API definition singleton
 │   │   ├── decorators.ts      # @Timeout, @MethodTimeout
 │   │   ├── error.ts           # ServiceTimeoutError
 │   │   └── types.ts           # Service types
@@ -82,8 +83,8 @@ src/
 │   ├── promise.ts
 │   ├── env.ts
 │   ├── type.ts              # AsyncifyFunctions utility
-│   └── typed-emitter.ts
-├── vite-plugins/          # Vite plugins
+│   └── typedEmitter.ts
+├── vitePlugins/          # Vite plugins
 └── __tests__/              # Test suites
     └── infrastructure/     # Test infrastructure
 ```

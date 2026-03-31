@@ -1,7 +1,7 @@
 import type { ChannelLike } from '@/shared/channel/types'
-import type { ApiType } from './api-definitions'
+import type { ApiType } from './apiDefinitions'
 import type { ServiceInfo } from './types'
-import { apiDefinitions } from './api-definitions'
+import { apiDefinitions } from './apiDefinitions'
 export { ServiceTimeoutError } from './error'
 import { Singleton } from '@/utils/singleton'
 
