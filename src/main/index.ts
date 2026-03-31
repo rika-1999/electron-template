@@ -2,7 +2,6 @@ import { app } from 'electron'
 import { logManager } from '@/utils/log'
 import { initUpdater } from './updater'
 import { appTray } from './tray'
-import { registerUpdaterIpc } from './ipc'
 import { createMainWindow } from './mainWindow'
 import { registerMainServices } from './services'
 import { serialize } from '@/utils/serialize'
@@ -25,7 +24,6 @@ app.whenReady().then(async () => {
   appTray.create()
 
   registerMainServices()
-  registerUpdaterIpc()
 
   initUpdater({
     updateServerURL: process.env.UPDATE_SERVER_URL ?? '',
