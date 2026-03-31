@@ -14,7 +14,10 @@
     "test": "vitest run",
     "test:main": "vitest run --project main",
     "test:renderer": "vitest run --project renderer",
-    "test:preload": "vitest run --project preload"
+    "test:preload": "vitest run --project preload",
+    "test:e2e": "pnpm run build && playwright test",
+    "test:e2e:debug": "pnpm run build && playwright test --debug",
+    "test:e2e:report": "playwright show-report"
   },
   "build": {
     "extends": "electron-builder.config.mjs"
@@ -26,6 +29,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "~1.58.2",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.6.0",
@@ -43,6 +47,7 @@
     "esbuild": "~0.24.0",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-playwright": "~2.10.1",
     "jsdom": "^26.0.0",
     "prettier": "^3.0.0",
     "tsx": "~4.19.0",

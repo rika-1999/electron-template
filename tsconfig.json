@@ -14,19 +14,15 @@
       "@/*": ["src/*"]
     }
   },
-  "include": [
-    "src/**/*",
-    "scripts/**/*",
-    "vite.config*.ts"
-  ],
+  "include": ["src/**/*", "scripts/**/*", "vite.config*.ts", "tests/**/*"],
   "exclude": [
     "src/renderer/**/*",
     "src/__tests__/renderer/**/*",
+    "src/__tests__/**/*.test.ts",
+    "src/__tests__/e2e/**/*",
     "node_modules",
     "dist",
     "release"
   ],
-  "references": [
-    { "path": "./tsconfig.renderer.json" }
-  ]
+  "references": [{ "path": "./tsconfig.renderer.json" }]
 }

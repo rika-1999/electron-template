@@ -233,6 +233,85 @@ beforeEach(() => {
 
 **No manual reset needed** — `vi.resetModules()` in setup files re-imports modules, creating fresh singleton instances. Tests run with clean state automatically.
 
+### E2E Testing with Playwright
+
+Playwright provides end-to-end integration testing that runs against the production Electron build.
+
+**Architecture:**
+
+| Component     | Location                             | Purpose                       |
+| ------------- | ------------------------------------ | ----------------------------- |
+| Configuration | `playwright.config.ts`               | Playwright test configuration |
+| Fixtures      | `tests/e2e/fixtures/electronApp.ts`  | Custom Electron fixture       |
+| Helpers       | `tests/e2e/helpers/windowHelpers.ts` | Window/page helpers           |
+| Tests         | `tests/e2e/**/*.spec.ts`             | E2E test files                |
+
+**Usage:**
+
+```bash
+pnpm run test:e2e         # Build and run E2E tests
+pnpm run test:e2e:debug   # Build and run in debug mode
+pnpm run test:e2e:report  # Open HTML test report
+```
+
+**Example:**
+
+```typescript
+// tests/e2e/app.spec.ts
+import { test, expect } from './fixtures/electronApp'
+import { waitForWindowReady } from './helpers/windowHelpers'
+
+test('app launches, creates main window, and loads React app with resources', async ({
+  electronApp,
+}) => {
+  const window = await waitForWindowReady(electronApp)
+
+  const title = await window.title()
+
+  expect(title).toBeTruthy()
+  expect(title).toContain('Electron')
+
+  const appElement = window.locator('#root').first()
+
+  await expect(appElement).toBeVisible()
+
+  const loadedResources = await window.evaluate(() => {
+    return {
+      hasReactRoot: !!document.getElementById('root'),
+      cssLoaded: !!document.querySelector('link[rel="stylesheet"]'),
+      stylesCount: document.querySelectorAll('link[rel="stylesheet"]').length,
+      scriptsCount: document.querySelectorAll('script').length,
+    }
+  })
+
+  expect(loadedResources.hasReactRoot).toBe(true)
+  expect(loadedResources.cssLoaded).toBe(true)
+  expect(loadedResources.stylesCount).toBeGreaterThan(0)
+  expect(loadedResources.scriptsCount).toBeGreaterThan(0)
+
+  console.log('✅ Resources loaded:', {
+    styles: loadedResources.stylesCount,
+    scripts: loadedResources.scriptsCount,
+  })
+})
+```
+
+**Key Differences from Vitest:**
+
+- **Environment**: Runs against actual Electron process (no mocks)
+- **Isolation**: Each test gets fresh Electron app instance
+- **Artifacts**: Screenshots, videos, and traces on failure
+- **Build**: Automatically runs `pnpm run build` before tests
+- **Parallelization**: Sequential execution (`workers: 1`) to avoid Electron conflicts
+
+**Test Strategy:**
+
+| Test Type   | Tool       | What It Tests                    | When to Use                       |
+| ----------- | ---------- | -------------------------------- | --------------------------------- |
+| Unit        | Vitest     | Isolated functions/classes       | Fast feedback, logic testing      |
+| Integration | Vitest     | Cross-process logic (with mocks) | IPC, service registry             |
+| E2E         | Playwright | Full app behavior                | User workflows, window management |
+
 ---
 
 ## File Extension Conventions
