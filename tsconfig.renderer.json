@@ -4,13 +4,23 @@
     "target": "ES2020",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "jsx": "react-jsx",
     "composite": true,
+    "declaration": true,
+    "declarationDir": "./dist/types/renderer",
     "emitDeclarationOnly": true,
-    "types": ["vitest/globals"]
+    "types": [
+      "vitest/globals"
+    ]
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*"
+  ],
   "exclude": [
     "src/main/**/*",
     "src/__tests__/main/**/*",
