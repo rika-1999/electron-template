@@ -1,1 +1,1 @@
-export * from './updaterApi'
+export * from './updaterApi';

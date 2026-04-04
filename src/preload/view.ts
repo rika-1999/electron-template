@@ -1,3 +1,3 @@
-import { channel } from '@/shared/channel'
+import { channel } from '@/shared/channel';
 
-channel.init()
+channel.init();

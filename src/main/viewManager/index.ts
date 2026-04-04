@@ -1,83 +1,83 @@
-import { TypedEmitter } from '@/utils/typedEmitter'
-import { ManagedView } from './managedView'
-import type { ViewOptions, ViewState, ViewEventMap } from '@/shared/view'
-import type { Handler, AnyRequestHandler, ChannelCenter, ChannelAPI } from '@/shared/channel'
-import { Singleton } from '@/utils/singleton'
+import { TypedEmitter } from '@/utils/typedEmitter';
+import { ManagedView } from './managedView';
+import type { ViewOptions, ViewState, ViewEventMap } from '@/shared/view';
+import type { Handler, AnyRequestHandler, ChannelCenter, ChannelAPI } from '@/shared/channel';
+import { Singleton } from '@/utils/singleton';
 
 function generateViewId(): string {
-  return `view-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  return `view-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 @Singleton()
 export class ViewManager extends TypedEmitter<ViewEventMap> implements ChannelCenter {
-  private views = new Map<string, ManagedView>()
-  private anyRequestHandlers = new Map<string, AnyRequestHandler>()
+  private views = new Map<string, ManagedView>();
+  private anyRequestHandlers = new Map<string, AnyRequestHandler>();
 
   // ─── View lifecycle ────────────────────────────────────────────────────
 
   async createView(options: ViewOptions): Promise<string> {
-    const id = options.id ?? generateViewId()
+    const id = options.id ?? generateViewId();
 
     // Validate ID uniqueness
     if (this.views.has(id)) {
-      throw new Error(`View with id '${id}' already exists`)
+      throw new Error(`View with id '${id}' already exists`);
     }
 
-    const type = options.type ?? 'embedded'
+    const type = options.type ?? 'embedded';
 
     const view = new ManagedView(id, {
       url: options.url,
       type,
       channel: options.channel,
       preload: options.preload,
-    })
+    });
 
     view.on('state-changed', (state) => {
-      this.emit('view-state-changed', id, state)
-    })
+      this.emit('view-state-changed', id, state);
+    });
     view.on('ready', () => {
-      this.emit('view-ready', id)
-    })
+      this.emit('view-ready', id);
+    });
 
     // Init channel and load URL before exposing view
-    await view.initChannel()
-    await view.load()
+    await view.initChannel();
+    await view.load();
 
     // Apply any registered onAnyRequest handlers
     for (const [method, handler] of this.anyRequestHandlers) {
-      view.channel.onRequest(method, (payload: unknown) => handler(id, payload))
+      view.channel.onRequest(method, (payload: unknown) => handler(id, payload));
     }
 
     // Only add to views map after full initialization
-    this.views.set(id, view)
+    this.views.set(id, view);
 
-    this.emit('view-created', id, view.state)
-    return id
+    this.emit('view-created', id, view.state);
+    return id;
   }
 
   destroyView(viewId: string): void {
-    const view = this.views.get(viewId)
+    const view = this.views.get(viewId);
     if (!view) {
-      return
+      return;
     }
 
-    view.destroy()
-    this.views.delete(viewId)
-    this.emit('view-destroyed', viewId)
+    view.destroy();
+    this.views.delete(viewId);
+    this.emit('view-destroyed', viewId);
   }
 
   // ─── Query ─────────────────────────────────────────────────────────────
 
   getView(viewId: string): ManagedView | undefined {
-    return this.views.get(viewId)
+    return this.views.get(viewId);
   }
 
   getViewState(viewId: string): ViewState | undefined {
-    return this.views.get(viewId)?.state
+    return this.views.get(viewId)?.state;
   }
 
   listViews(): ViewState[] {
-    return Array.from(this.views.values()).map((v) => v.state)
+    return Array.from(this.views.values()).map((v) => v.state);
   }
 
   // ─── Built-in channel ──────────────────────────────────────────────────
@@ -88,51 +88,51 @@ export class ViewManager extends TypedEmitter<ViewEventMap> implements ChannelCe
     payload?: unknown,
     timeout?: number,
   ): Promise<unknown> {
-    const view = this.views.get(viewId)
+    const view = this.views.get(viewId);
     if (!view) {
-      throw new Error(`View not found: ${viewId}`)
+      throw new Error(`View not found: ${viewId}`);
     }
-    return view.channel.request(method, payload, timeout)
+    return view.channel.request(method, payload, timeout);
   }
 
   async broadcast(method: string, payload?: unknown, timeout?: number): Promise<void> {
-    const promises: Promise<unknown>[] = []
+    const promises: Promise<unknown>[] = [];
     for (const view of this.views.values()) {
-      promises.push(view.channel.request(method, payload, timeout))
+      promises.push(view.channel.request(method, payload, timeout));
     }
-    await Promise.allSettled(promises)
+    await Promise.allSettled(promises);
   }
 
   onRequest(viewId: string, method: string, handler: Handler): void {
-    const view = this.views.get(viewId)
+    const view = this.views.get(viewId);
     if (!view) {
-      return
+      return;
     }
-    view.channel.onRequest(method, handler)
+    view.channel.onRequest(method, handler);
   }
 
   onAnyRequest(method: string, handler: AnyRequestHandler): void {
-    this.anyRequestHandlers.set(method, handler)
+    this.anyRequestHandlers.set(method, handler);
     // Apply to all existing views
     for (const [id, view] of this.views) {
-      view.channel.onRequest(method, (payload: unknown) => handler(id, payload))
+      view.channel.onRequest(method, (payload: unknown) => handler(id, payload));
     }
   }
 
   offAnyRequest(method: string): void {
-    this.anyRequestHandlers.delete(method)
+    this.anyRequestHandlers.delete(method);
     // Remove from all existing views
     for (const view of this.views.values()) {
-      view.channel.offRequest(method)
+      view.channel.offRequest(method);
     }
   }
 
   getAllChannels(): Map<string, ChannelAPI> {
-    const channels = new Map<string, ChannelAPI>()
+    const channels = new Map<string, ChannelAPI>();
     for (const [id, view] of this.views) {
-      channels.set(id, view.channel)
+      channels.set(id, view.channel);
     }
-    return channels
+    return channels;
   }
 
   // ─── Cleanup ─────────────────────────────────────────────────────────────
@@ -140,11 +140,11 @@ export class ViewManager extends TypedEmitter<ViewEventMap> implements ChannelCe
   /** Destroy all views and reset internal state. */
   destroy(): void {
     for (const viewId of this.views.keys()) {
-      this.destroyView(viewId)
+      this.destroyView(viewId);
     }
-    this.anyRequestHandlers.clear()
-    this.removeAllListeners()
+    this.anyRequestHandlers.clear();
+    this.removeAllListeners();
   }
 }
 
-export const viewManager = new ViewManager()
+export const viewManager = new ViewManager();

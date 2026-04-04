@@ -1,14 +1,14 @@
-import path from 'node:path'
-import { builtinModules } from 'node:module'
-import { defineConfig } from 'vite'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
-import { sourceFilePlugin } from './src/vitePlugins/sourceFilePlugin'
-import { fileURLToPath } from 'node:url'
+import path from 'node:path';
+import { builtinModules } from 'node:module';
+import { defineConfig } from 'vite';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
+import { sourceFilePlugin } from './src/vitePlugins/sourceFilePlugin';
+import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const isDev = process.env.NODE_ENV !== 'production'
+const isDev = process.env.NODE_ENV !== 'production';
 
 export default defineConfig({
   plugins: [
@@ -55,4 +55,4 @@ export default defineConfig({
       process.env.UPDATE_CHECK_INTERVAL ?? '3600000',
     ),
   },
-})
+});

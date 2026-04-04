@@ -1,8 +1,8 @@
-import { serviceRegistry } from '@/shared/serviceRegistry'
+import { serviceRegistry } from '@/shared/serviceRegistry';
 
 export abstract class UpdaterApi {
-  abstract checkForUpdates(): Promise<void>
-  abstract quitAndInstall(): Promise<void>
+  abstract checkForUpdates(): Promise<void>;
+  abstract quitAndInstall(): Promise<void>;
 }
 
-export const updaterServiceApi = serviceRegistry.defineApi(UpdaterApi, 'main')
+export const updaterServiceApi = serviceRegistry.defineApi(UpdaterApi, 'main');

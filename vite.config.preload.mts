@@ -1,17 +1,17 @@
-import path from 'node:path'
-import { builtinModules } from 'node:module'
-import { defineConfig } from 'vite'
-import { sourceFilePlugin } from './src/vitePlugins/sourceFilePlugin'
-import { fileURLToPath } from 'node:url'
+import path from 'node:path';
+import { builtinModules } from 'node:module';
+import { defineConfig } from 'vite';
+import { sourceFilePlugin } from './src/vitePlugins/sourceFilePlugin';
+import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const isDev = process.env.NODE_ENV !== 'production'
+const isDev = process.env.NODE_ENV !== 'production';
 
-const preloadType = process.env.PRELOAD_TYPE || 'index'
+const preloadType = process.env.PRELOAD_TYPE || 'index';
 
-const entry = `src/preload/${preloadType}.ts`
+const entry = `src/preload/${preloadType}.ts`;
 
 export default defineConfig({
   plugins: [sourceFilePlugin()],
@@ -24,7 +24,7 @@ export default defineConfig({
       formats: ['cjs'],
       fileName: () => 'index.js',
     },
-    outDir: preloadType === 'index' ? 'dist/preload' : `dist/proload-${preloadType}`,
+    outDir: preloadType === 'index' ? 'dist/preload' : `dist/preload-${preloadType}`,
     emptyOutDir: true,
     sourcemap: isDev,
     minify: !isDev,
@@ -40,4 +40,4 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     'process.env.PROCESS_TYPE': JSON.stringify('preload') as 'main' | 'preload' | 'renderer',
   },
-})
+});

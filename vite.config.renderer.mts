@@ -1,13 +1,13 @@
-import path from 'node:path'
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
-import { sourceFilePlugin } from './src/vitePlugins/sourceFilePlugin'
-import { fileURLToPath } from 'node:url'
+import path from 'node:path';
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
+import { sourceFilePlugin } from './src/vitePlugins/sourceFilePlugin';
+import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const isDev = process.env.NODE_ENV !== 'production'
+const isDev = process.env.NODE_ENV !== 'production';
 
 export default defineConfig({
   root: 'src/renderer',
@@ -29,4 +29,4 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
   },
-})
+});

@@ -1,5 +1,5 @@
-import { vi } from 'vitest'
-import { createMockMessageChannel } from '../helpers/channelHelpers'
+import { vi } from 'vitest';
+import { createMockMessageChannel } from '../helpers/channelHelpers';
 
 // Singleton mock instances — shared by setup AND test assertions
 export const mockApp = {
@@ -20,7 +20,7 @@ export const mockApp = {
   removeListener: vi.fn(),
   removeAllListeners: vi.fn(),
   dispatch: vi.fn(),
-}
+};
 
 export const mockBaseWindow = {
   show: vi.fn(),
@@ -62,7 +62,7 @@ export const mockBaseWindow = {
   setMenu: vi.fn(),
   setMenuBarVisibility: vi.fn(),
   id: 1,
-}
+};
 
 export const mockWebContents = {
   send: vi.fn(),
@@ -91,7 +91,7 @@ export const mockWebContents = {
   isDevToolsOpened: vi.fn(() => false),
   print: vi.fn(),
   executeJavaScript: vi.fn(),
-}
+};
 
 export const mockIpcMain = {
   handle: vi.fn(),
@@ -100,7 +100,7 @@ export const mockIpcMain = {
   once: vi.fn(),
   removeHandler: vi.fn(),
   removeAllHandlers: vi.fn(),
-}
+};
 
 export const mockIpcRenderer = {
   send: vi.fn(),
@@ -112,11 +112,11 @@ export const mockIpcRenderer = {
   removeAllListeners: vi.fn(),
   addListener: vi.fn(),
   removeListener: vi.fn(),
-}
+};
 
 export const mockContextBridge = {
   exposeInMainWorld: vi.fn(),
-}
+};
 
 export const mockWebContentsView = {
   webContents: mockWebContents,
@@ -124,9 +124,9 @@ export const mockWebContentsView = {
   setBounds: vi.fn(),
   setAutoResize: vi.fn(),
   destroy: vi.fn(),
-}
+};
 
-export { createMockMessageChannel }
+export { createMockMessageChannel };
 
 export function createMockElectron() {
   return {
@@ -138,5 +138,5 @@ export function createMockElectron() {
     contextBridge: mockContextBridge,
     MessageChannelMain: vi.fn(() => createMockMessageChannel()),
     WebContentsView: vi.fn(() => ({ ...mockWebContentsView })),
-  }
+  };
 }

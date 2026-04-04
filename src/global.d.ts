@@ -1,1 +1,1 @@
-declare const __SOURCE_FILE__: string
+declare const __SOURCE_FILE__: string;

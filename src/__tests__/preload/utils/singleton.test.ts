@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { Singleton } from '@/utils/singleton'
+import { describe, it, expect } from 'vitest';
+import { Singleton } from '@/utils/singleton';
 
 describe('Singleton decorator (preload process)', () => {
   it('should return the same instance for multiple new calls', () => {
@@ -8,11 +8,11 @@ describe('Singleton decorator (preload process)', () => {
       constructor(public value: number) {}
     }
 
-    const instance1 = new TestClass(1)
-    const instance2 = new TestClass(2)
+    const instance1 = new TestClass(1);
+    const instance2 = new TestClass(2);
 
-    expect(instance1).toBe(instance2)
-  })
+    expect(instance1).toBe(instance2);
+  });
 
   it('should NOT be singleton when preload is not in the list', () => {
     @Singleton('main')
@@ -20,9 +20,9 @@ describe('Singleton decorator (preload process)', () => {
       constructor(public value: number) {}
     }
 
-    const instance1 = new MainOnlySingleton(1)
-    const instance2 = new MainOnlySingleton(2)
+    const instance1 = new MainOnlySingleton(1);
+    const instance2 = new MainOnlySingleton(2);
 
-    expect(instance1).not.toBe(instance2)
-  })
-})
+    expect(instance1).not.toBe(instance2);
+  });
+});

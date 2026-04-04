@@ -1,127 +1,51 @@
 # AGENTS.md
 
-> **Quick Reference**: This file is for agentic coding assistants. Detailed docs are in `docs/`.
->
-> **Note**: When updating docs, keep this file at ~100 lines. Move detailed content to `docs/` folder.
+## What this repo is
 
-## Project Overview
+Electron 34 + React 18 + TypeScript desktop application with MessagePort-based IPC and comprehensive testing.
 
-Electron 34 + React 18 + TypeScript desktop app with MessagePort-based IPC. Three Vitest projects (main/preload/renderer) + Playwright E2E tests.
+## Universal Tooling
 
-## Quick Commands
+- Stack: Electron, React, TypeScript, Vite
+- Package Manager: pnpm 9.0.0
+- Testing: Vitest (unit) + Playwright (E2E)
+- Primary Docs: [README.md](README.md)
 
-```bash
-pnpm run dev              # Build dev + start Electron
-pnpm run build            # Production build
-pnpm run package:win      # Package for Windows
-pnpm run package          # Package for all platforms
-pnpm run lint             # Lint code (eslint src)
-npx eslint src --fix      # Lint and auto-fix
-pnpm run test             # Run all Vitest tests
-pnpm run test:main        # Run main process tests only
-pnpm run test:preload     # Run preload tests only
-pnpm run test:renderer    # Run renderer tests only
-pnpm run test:e2e         # Run Playwright E2E tests (build + test)
-pnpm run test:e2e:debug   # Run Playwright E2E tests in debug mode
-pnpm run test:e2e:report  # Open Playwright HTML test report
-npx vitest run <file>     # Single test file (auto-detects project)
-npx vitest run <file> --project main   # Single file in main project
-```
+## Commands
+
+| Command                   | Description                                       |
+| ------------------------- | ------------------------------------------------- |
+| `pnpm run dev`            | Build dev assets + start Electron with hot reload |
+| `pnpm run build`          | Production build (main/preload/renderer)          |
+| `pnpm run package:win`    | Build + package for Windows (NSIS x64)            |
+| `pnpm run package`        | Build + package for all platforms                 |
+| `pnpm run lint -- --fix`  | Auto-fix lint issues                              |
+| `pnpm run test`           | Run all unit tests                                |
+| `pnpm run test:main`      | Run main process tests                            |
+| `pnpm run test:renderer`  | Run renderer process tests                        |
+| `pnpm run test:preload`   | Run preload tests                                 |
+| `npx vitest run <file>`   | Run single test file                              |
+| `pnpm run test:e2e`       | Run Playwright E2E tests                          |
+| `pnpm run test:e2e:debug` | Run E2E tests with debugger                       |
 
 ## Key Singletons
 
-| Singleton         | Location                              | Responsibility                           |
-| ----------------- | ------------------------------------- | ---------------------------------------- |
-| `viewManager`     | `src/main/viewManager/index.ts`       | All `WebContentsView` instances          |
-| `windowManager`   | `src/main/windowManager/index.ts`     | All `BrowserWindow` instances            |
-| `channel`         | `src/shared/channel.ts`               | Default IPC channel (MessageChannelMain) |
-| `serviceRegistry` | `src/shared/serviceRegistry/index.ts` | Service registration, routing & timeouts |
+| Singleton         | Location                      | Purpose                                  |
+| ----------------- | ----------------------------- | ---------------------------------------- |
+| `viewManager`     | `src/main/viewManager/`       | Manages all `WebContentsView` instances  |
+| `windowManager`   | `src/main/windowManager/`     | Manages all `BrowserWindow` instances    |
+| `channel`         | `src/shared/channel.ts`       | Default IPC channel (MessageChannelMain) |
+| `serviceRegistry` | `src/shared/serviceRegistry/` | Service registration, routing & timeouts |
 
-## Testing Architecture
+## Progressive Disclosure
 
-Three Vitest projects + Playwright E2E:
+- [Architecture & Patterns](docs/architecture.md) — Project structure and architectural patterns
+- [Code Style](docs/code-style.md) — Naming, formatting, and TypeScript conventions
+- [IPC Channel System](docs/channel.md) — MessagePort-based communication design
+- [Testing Patterns](docs/patterns.md) — Mock rules and testing strategies
 
-- **main**: `setup.ts` → `src/__tests__/main/**` (node env)
-- **preload**: `setup.preload.ts` → `src/__tests__/preload/**` (jsdom)
-- **renderer**: `setup.renderer.ts` → `src/__tests__/renderer/**` (jsdom)
-- **e2e**: `playwright.config.ts` → `src/__tests__/e2e/**` (runs against production build)
+## Agent Configuration
 
-**Mock Rules** (Vitest):
-
-- `vi.mock` must be in setup files only
-- Test files import mocks from `@/__tests__/infrastructure/mocks/electron`
-- Main process tests: use `resetSingletons()` in `beforeEach` to clear state
-
-**E2E Testing**:
-
-- Tests run against production build (`pnpm run test:e2e`)
-- Uses `electronApp` fixture to launch actual Electron app
-- Tests real user interactions across main/preload/renderer processes
-
-## Code Style Summary
-
-- **Naming**: File names and folder names must use camelCase (no hyphens)
-- **ESLint**: `curly: ['error', 'all']` — all control bodies must use `{}`
-- **Prettier**: no semicolons, single quotes, trailing commas, print width 100
-- **TypeScript**: strict mode, use `unknown` instead of `any`
-- **Path alias**: `@/*` maps to `src/` — use this for all internal imports
-- **Singletons**: Export instances: `export const channel = new Channel()`, `export const serviceRegistry = new ServiceRegistry()`
-
-## Directory Structure
-
-```
-src/
-├── main/                    # Main process
-│   ├── viewManager/         # WebContentsView management
-│   ├── windowManager/       # BrowserWindow management
-│   └── services/             # Service implementations (main process)
-├── preload/                 # Preload scripts
-├── renderer/                # React SPA
-├── shared/                  # Shared types + infrastructure
-│   ├── channel/             # IPC channel (folder structure)
-│   ├── serviceRegistry/      # Service registration center
-│   │   ├── apiDefinitions.ts # API definition singleton
-│   │   ├── decorators.ts      # @Timeout, @MethodTimeout
-│   │   ├── error.ts           # ServiceTimeoutError
-│   │   └── types.ts           # Service types
-│   ├── services/             # Service API definitions
-│   ├── view.ts
-│   └── window.ts
-├── utils/                   # Shared utilities + app services
-│   ├── log/                 # electron-log wrapper
-│   ├── serialize/
-│   ├── promise.ts
-│   ├── env.ts
-│   ├── type.ts              # AsyncifyFunctions utility
-│   └── typedEmitter.ts
- ├── vitePlugins/          # Vite plugins
- └── __tests__/              # Test suites (Vitest)
-     ├── infrastructure/     # Test infrastructure
-     │   ├── setup.ts
-     │   ├── setup.preload.ts
-     │   ├── setup.renderer.ts
-     │   ├── mocks/
-     │   └── helpers/
-     ├── main/               # Main process tests
-     ├── preload/            # Preload tests
-     └── renderer/           # Renderer tests
-tests/                       # E2E tests (Playwright)
- └── e2e/                # Playwright E2E tests
-     ├── fixtures/
-     │   └── electronApp.ts
-     ├── helpers/
-     │   └── windowHelpers.ts
-     ├── app.spec.ts
-     └── global-setup.ts
-```
-
-## Documentation
-
-| Topic                   | File                                                                       |
-| ----------------------- | -------------------------------------------------------------------------- |
-| Channel architecture    | [docs/channel.md](docs/channel.md)                                         |
-| Service Registry        | [src/shared/serviceRegistry/index.ts](src/shared/serviceRegistry/index.ts) |
-| Service Registry Design | [src/shared/serviceRegistry/types.ts](src/shared/serviceRegistry/types.ts) |
-| Code style details      | [docs/code-style.md](docs/code-style.md)                                   |
-| Patterns & testing      | [docs/patterns.md](docs/patterns.md)                                       |
-| Project structure       | [docs/architecture.md](docs/architecture.md)                               |
+- Process type guard: `process.env.PROCESS_TYPE === 'main'/'renderer'`
+- Path alias: `@/*` maps to `src/`
+- Project-specific skills: `.claude/skills/` (auto-discovered)

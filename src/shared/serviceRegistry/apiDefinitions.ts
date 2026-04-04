@@ -1,55 +1,55 @@
-import type { ChannelLike } from '@/shared/channel/types'
-import { AsyncifyFunctions } from '@/utils/type'
-import { ServiceTimeoutError } from './error'
+import type { ChannelLike } from '@/shared/channel/types';
+import { AsyncifyFunctions } from '@/utils/type';
+import { ServiceTimeoutError } from './error';
 
 export type ApiType<T> = AsyncifyFunctions<T> & {
-  use: (channel: ChannelLike) => ApiType<T>
-}
+  use: (channel: ChannelLike) => ApiType<T>;
+};
 
 export const apiDefinitions = (() => {
-  const BUILT_IN_DEFAULT_TIMEOUT = 10000
+  const BUILT_IN_DEFAULT_TIMEOUT = 10000;
 
   const definitions = new Map<
     abstract new () => object,
     {
-      serviceName: string
-      processType: 'main' | 'preload' | 'renderer'
-      apiProxy: unknown
+      serviceName: string;
+      processType: 'main' | 'preload' | 'renderer';
+      apiProxy: unknown;
     }
-  >()
+  >();
 
-  let defaultTimeout: number | undefined = undefined
+  let defaultTimeout: number | undefined = undefined;
 
-  let defaultChannel: ChannelLike | null = null
+  let defaultChannel: ChannelLike | null = null;
 
   let getServiceImplementation: ((serviceName: string) => { instance: object } | undefined) | null =
-    null
+    null;
 
   function getServiceName(className: string): string {
-    return className.replace(/Api$/, '').toLowerCase()
+    return className.replace(/Api$/, '').toLowerCase();
   }
 
   function getEffectiveTimeout(apiClass: abstract new () => object, methodName: string): number {
     const methodTimeouts = (apiClass as { __methodTimeouts__?: Map<string, number> })
-      .__methodTimeouts__
+      .__methodTimeouts__;
     if (methodTimeouts?.has(methodName)) {
-      return methodTimeouts.get(methodName)!
+      return methodTimeouts.get(methodName)!;
     }
 
-    const classTimeout = (apiClass as { __serviceTimeout__?: number }).__serviceTimeout__
+    const classTimeout = (apiClass as { __serviceTimeout__?: number }).__serviceTimeout__;
     if (classTimeout !== undefined) {
-      return classTimeout
+      return classTimeout;
     }
 
-    return defaultTimeout ?? BUILT_IN_DEFAULT_TIMEOUT
+    return defaultTimeout ?? BUILT_IN_DEFAULT_TIMEOUT;
   }
 
   function createTimeoutPromise(service: string, method: string, ms: number): Promise<never> {
     return new Promise((_, reject) => {
       setTimeout(() => {
-        reject(new ServiceTimeoutError(service, method, ms))
-      }, ms)
-    })
+        reject(new ServiceTimeoutError(service, method, ms));
+      }, ms);
+    });
   }
 
   async function invokeRemote(
@@ -59,13 +59,13 @@ export const apiDefinitions = (() => {
     args: unknown[],
     timeout: number,
   ): Promise<unknown> {
-    const channelMethod = `${serviceId}:${method}`
+    const channelMethod = `${serviceId}:${method}`;
 
     if ('request' in channelLike && typeof channelLike.request === 'function') {
-      return (channelLike as ChannelLike).request(channelMethod, args, timeout)
+      return (channelLike as ChannelLike).request(channelMethod, args, timeout);
     }
 
-    throw new Error('Channel does not support request method')
+    throw new Error('Channel does not support request method');
   }
 
   function createApiProxy(
@@ -85,59 +85,59 @@ export const apiDefinitions = (() => {
               ApiClass,
               getServiceImplementation,
               newChannel,
-            )
-          }
+            );
+          };
         }
 
         if (typeof prop === 'string') {
           if (process.env.PROCESS_TYPE === processType) {
             return (...args: unknown[]) => {
-              const impl = getServiceImplementation(serviceName)
+              const impl = getServiceImplementation(serviceName);
               if (!impl?.instance) {
-                throw new Error(`Service '${serviceName}' not implemented`)
+                throw new Error(`Service '${serviceName}' not implemented`);
               }
-              const method = (impl.instance as Record<string, unknown>)[prop]
+              const method = (impl.instance as Record<string, unknown>)[prop];
               if (typeof method === 'function') {
-                const timeout = getEffectiveTimeout(ApiClass, prop)
+                const timeout = getEffectiveTimeout(ApiClass, prop);
                 return Promise.race([
                   (method as (...args: unknown[]) => unknown).apply(impl.instance, args),
                   createTimeoutPromise(serviceName, prop, timeout),
-                ])
+                ]);
               }
-              return method
-            }
+              return method;
+            };
           } else {
             return (...args: unknown[]) => {
-              const timeout = getEffectiveTimeout(ApiClass, prop)
-              const channel = useChannel ?? defaultChannel
+              const timeout = getEffectiveTimeout(ApiClass, prop);
+              const channel = useChannel ?? defaultChannel;
               if (!channel) {
                 throw new Error(
                   `No channel specified for remote service '${serviceName}'. Call .use(channel) first.`,
-                )
+                );
               }
-              return invokeRemote(channel, serviceName, prop, args, timeout)
-            }
+              return invokeRemote(channel, serviceName, prop, args, timeout);
+            };
           }
         }
 
-        return target[prop as never]
+        return target[prop as never];
       },
-    })
+    });
   }
 
   return {
     setServiceImplementationGetter(
       getter: (serviceName: string) => { instance: object } | undefined,
     ): void {
-      getServiceImplementation = getter
+      getServiceImplementation = getter;
     },
 
     setDefaultTimeout(timeout: number): void {
-      defaultTimeout = timeout
+      defaultTimeout = timeout;
     },
 
     setDefaultChannel(channel: ChannelLike): void {
-      defaultChannel = channel
+      defaultChannel = channel;
     },
 
     defineApi<T extends object>(
@@ -147,29 +147,29 @@ export const apiDefinitions = (() => {
       if (!getServiceImplementation) {
         throw new Error(
           'Service implementation getter not set. Call setServiceImplementationGetter first.',
-        )
+        );
       }
 
-      const serviceName = getServiceName(ApiClass.name)
+      const serviceName = getServiceName(ApiClass.name);
 
-      ;(ApiClass as unknown as Record<string, unknown>).__serviceInfo__ = {
+      (ApiClass as unknown as Record<string, unknown>).__serviceInfo__ = {
         serviceName,
         processType,
-      }
+      };
 
-      const apiProxy = createApiProxy(serviceName, processType, ApiClass, getServiceImplementation)
+      const apiProxy = createApiProxy(serviceName, processType, ApiClass, getServiceImplementation);
 
       definitions.set(ApiClass, {
         serviceName,
         processType,
         apiProxy,
-      })
+      });
 
-      return apiProxy as ApiType<T>
+      return apiProxy as ApiType<T>;
     },
 
     find(ApiClass: abstract new () => object) {
-      return definitions.get(ApiClass)
+      return definitions.get(ApiClass);
     },
-  }
-})()
+  };
+})();
