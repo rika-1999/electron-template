@@ -120,7 +120,7 @@ describe('ServiceRegistry', () => {
       const { serviceRegistry } = await import('@/shared/serviceRegistry');
       const testServiceApi = serviceRegistry.defineApi(TestApi, 'renderer');
       const { mainChannel, rendererChannel } = await createChannelMock({ webContentsId: 1 });
-      rendererChannel.onRequest('test:testMethod', () => 'remote-result');
+      rendererChannel.onRequest('TestApi:testMethod', () => 'remote-result');
 
       const api = testServiceApi.use(mainChannel);
       const result = await api.testMethod();

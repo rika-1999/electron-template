@@ -1,6 +1,7 @@
 import type { ChannelLike } from '@/shared/channel/types';
 import { AsyncifyFunctions } from '@/utils/type';
 import { ServiceTimeoutError } from './error';
+import { serviceMetadataRegistry } from './serviceMetadataRegistry';
 
 export type ApiType<T> = AsyncifyFunctions<T> & {
   use: (channel: ChannelLike) => ApiType<T>;
@@ -24,25 +25,6 @@ export const apiDefinitions = (() => {
 
   let getServiceImplementation: ((serviceName: string) => { instance: object } | undefined) | null =
     null;
-
-  function getServiceName(className: string): string {
-    return className.replace(/Api$/, '').toLowerCase();
-  }
-
-  function getEffectiveTimeout(apiClass: abstract new () => object, methodName: string): number {
-    const methodTimeouts = (apiClass as { __methodTimeouts__?: Map<string, number> })
-      .__methodTimeouts__;
-    if (methodTimeouts?.has(methodName)) {
-      return methodTimeouts.get(methodName)!;
-    }
-
-    const classTimeout = (apiClass as { __serviceTimeout__?: number }).__serviceTimeout__;
-    if (classTimeout !== undefined) {
-      return classTimeout;
-    }
-
-    return defaultTimeout ?? BUILT_IN_DEFAULT_TIMEOUT;
-  }
 
   function createTimeoutPromise(service: string, method: string, ms: number): Promise<never> {
     return new Promise((_, reject) => {
@@ -98,7 +80,11 @@ export const apiDefinitions = (() => {
               }
               const method = (impl.instance as Record<string, unknown>)[prop];
               if (typeof method === 'function') {
-                const timeout = getEffectiveTimeout(ApiClass, prop);
+                const timeout = serviceMetadataRegistry.getEffectiveTimeout(
+                  ApiClass,
+                  prop,
+                  defaultTimeout ?? BUILT_IN_DEFAULT_TIMEOUT,
+                );
                 return Promise.race([
                   (method as (...args: unknown[]) => unknown).apply(impl.instance, args),
                   createTimeoutPromise(serviceName, prop, timeout),
@@ -108,7 +94,11 @@ export const apiDefinitions = (() => {
             };
           } else {
             return (...args: unknown[]) => {
-              const timeout = getEffectiveTimeout(ApiClass, prop);
+              const timeout = serviceMetadataRegistry.getEffectiveTimeout(
+                ApiClass,
+                prop,
+                defaultTimeout ?? BUILT_IN_DEFAULT_TIMEOUT,
+              );
               const channel = useChannel ?? defaultChannel;
               if (!channel) {
                 throw new Error(
@@ -150,12 +140,9 @@ export const apiDefinitions = (() => {
         );
       }
 
-      const serviceName = getServiceName(ApiClass.name);
+      const serviceName = serviceMetadataRegistry.getServiceName(ApiClass);
 
-      (ApiClass as unknown as Record<string, unknown>).__serviceInfo__ = {
-        serviceName,
-        processType,
-      };
+      serviceMetadataRegistry.registerService(ApiClass, serviceName, processType);
 
       const apiProxy = createApiProxy(serviceName, processType, ApiClass, getServiceImplementation);
 

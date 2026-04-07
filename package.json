@@ -24,13 +24,17 @@
     "extends": "electron-builder.config.mjs"
   },
   "dependencies": {
+    "@radix-ui/react-slot": "^1.2.4",
+    "class-variance-authority": "^0.7.1",
     "electron-log": "~5.2.0",
     "electron-updater": "~6.8.3",
+    "lucide-react": "^1.7.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@playwright/test": "~1.58.2",
+    "@tailwindcss/vite": "^4.2.2",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.6.0",
@@ -52,6 +56,7 @@
     "jsdom": "^26.0.0",
     "msw": "^2.12.14",
     "prettier": "^3.0.0",
+    "tailwindcss": "^4.2.2",
     "tsx": "~4.19.0",
     "typescript": "~5.5.0",
     "typescript-eslint": "~8.57.0",

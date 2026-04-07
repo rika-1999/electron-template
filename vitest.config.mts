@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { defineConfig } from 'vitest/config';
 import { fileURLToPath } from 'node:url';
+import { sourceFilePlugin } from './src/vitePlugins/sourceFilePlugin';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,6 +15,7 @@ export default defineConfig({
     exclude: ['node_modules', 'dist', 'release'],
     projects: [
       {
+        plugins: [sourceFilePlugin()],
         resolve: { alias },
         test: {
           name: 'main',
@@ -29,6 +31,7 @@ export default defineConfig({
         },
       },
       {
+        plugins: [sourceFilePlugin()],
         resolve: { alias },
         test: {
           name: 'preload',
@@ -39,6 +42,7 @@ export default defineConfig({
         },
       },
       {
+        plugins: [sourceFilePlugin()],
         resolve: { alias },
         test: {
           name: 'renderer',

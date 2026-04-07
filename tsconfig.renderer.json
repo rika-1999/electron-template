@@ -24,7 +24,6 @@
   "exclude": [
     "src/main/**/*",
     "src/__tests__/main/**/*",
-    "src/__tests__/infrastructure/**/*",
     "node_modules",
     "dist",
     "release"

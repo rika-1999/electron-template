@@ -233,6 +233,20 @@ beforeEach(() => {
 
 **No manual reset needed** — `vi.resetModules()` in setup files re-imports modules, creating fresh singleton instances. Tests run with clean state automatically.
 
+### Cross-Process Service Testing
+
+For testing services that communicate across processes, use dynamic imports and mock channels:
+
+```typescript
+// Dynamic import ensures fresh singleton instances
+const { rendererChannel } = await createChannelPairMock(
+  (await import('@/shared/channel')).channel
+);
+const { counterService } = await import('@/main/services/counterService');
+```
+
+**Full Example**: See [Cross-Process Communication Example](cross-process-communication-example.md) for complete test implementation with detailed explanations.
+
 ### E2E Testing with Playwright
 
 Playwright provides end-to-end integration testing that runs against the production Electron build.

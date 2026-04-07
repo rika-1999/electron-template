@@ -115,7 +115,9 @@ export const mockIpcRenderer = {
 };
 
 export const mockContextBridge = {
-  exposeInMainWorld: vi.fn(),
+  exposeInMainWorld: vi.fn((apiKey: string, api: unknown) => {
+    (window as unknown as Record<string, unknown>)[apiKey] = api;
+  }),
 };
 
 export const mockWebContentsView = {

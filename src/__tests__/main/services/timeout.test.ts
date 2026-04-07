@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { createChannelMock } from '@/__tests__/infrastructure/helpers/channelHelpers';
 import { Timeout, MethodTimeout } from '@/shared/serviceRegistry/decorators';
+import { serviceMetadataRegistry } from '@/shared/serviceRegistry/serviceMetadataRegistry';
 
 describe('Service Registry Timeout', () => {
   beforeEach(() => {
@@ -59,7 +60,7 @@ describe('Service Registry Timeout', () => {
       const promise2 = timeoutApi.slowMethod();
       vi.advanceTimersByTime(600);
       await expect(promise2).rejects.toThrow(
-        "Service 'testtimeout.slowMethod' timed out after 500ms",
+        "Service 'TestTimeoutApi.slowMethod' timed out after 500ms",
       );
     });
   });
@@ -88,11 +89,8 @@ describe('Service Registry Timeout', () => {
     }
 
     // Manually apply decorator metadata to simulate @MethodTimeout on methods
-    const methodTimeoutsMap = new Map<string, number>();
-    methodTimeoutsMap.set('method1', 1000);
-    methodTimeoutsMap.set('method2', 100);
-    (TestTimeoutWithClassApi as unknown as Record<string, unknown>).__methodTimeouts__ =
-      methodTimeoutsMap;
+    serviceMetadataRegistry.setMethodTimeout(TestTimeoutWithClassApi, 'method1', 1000);
+    serviceMetadataRegistry.setMethodTimeout(TestTimeoutWithClassApi, 'method2', 100);
 
     it('should apply timeout to individual methods', async () => {
       const { serviceRegistry } = await import('@/shared/serviceRegistry');
@@ -120,7 +118,7 @@ describe('Service Registry Timeout', () => {
       const promise2 = (methodTimeoutApi as unknown as TestTimeoutWithClassApi).method2();
       vi.advanceTimersByTime(200);
       await expect(promise2).rejects.toThrow(
-        "Service 'testtimeoutwithclass.method2' timed out after 100ms",
+        "Service 'TestTimeoutWithClassApi.method2' timed out after 100ms",
       );
     });
   });
@@ -171,7 +169,7 @@ describe('Service Registry Timeout', () => {
         await promise;
         expect.fail('Should have thrown ServiceTimeoutError');
       } catch (error) {
-        expect((error as Error).message).toContain('error');
+        expect((error as Error).message).toContain('ErrorApi');
       }
     });
 
@@ -380,7 +378,7 @@ describe('Service Registry Timeout', () => {
       const crossProcessApi = serviceRegistry.defineApi(CrossProcessApi, 'renderer');
       await crossProcessApi.remoteMethod();
 
-      expect(mockRequest).toHaveBeenCalledWith('crossprocess:remoteMethod', [], 10000);
+      expect(mockRequest).toHaveBeenCalledWith('CrossProcessApi:remoteMethod', [], 10000);
     });
 
     it('should pass custom timeout to channel.request', async () => {
@@ -402,7 +400,7 @@ describe('Service Registry Timeout', () => {
       const api = serviceRegistry.defineApi(CustomTimeoutApi, 'renderer').use(mockChannel);
       await api.remoteMethod();
 
-      expect(mockRequest).toHaveBeenCalledWith('customtimeout:remoteMethod', [], 500);
+      expect(mockRequest).toHaveBeenCalledWith('CustomTimeoutApi:remoteMethod', [], 500);
     });
 
     it('should handle channel request timeout correctly', async () => {

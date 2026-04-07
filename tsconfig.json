@@ -11,6 +11,7 @@
     "declaration": true,
     "declarationDir": "./dist/types/main",
     "emitDeclarationOnly": true,
+    "experimentalDecorators": true,
     "rootDir": ".",
     "baseUrl": ".",
     "paths": {

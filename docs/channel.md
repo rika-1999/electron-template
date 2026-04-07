@@ -155,6 +155,8 @@ const updater = updaterServiceApi.use(channel)
 await updater.checkForUpdates()
 ```
 
+**Example**: See [Cross-Process Communication Example](cross-process-communication-example.md) for a complete walkthrough of a real-world service communication flow.
+
 See `src/shared/serviceRegistry/index.ts` for ServiceRegistry API documentation.
 
 ## Key Files

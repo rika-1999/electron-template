@@ -68,6 +68,8 @@ await updaterServiceApi.checkForUpdates() // Auto-routes to main process
 await updaterServiceApi.use(channel).checkForUpdates() // Use specific channel
 ```
 
+**Example**: For a complete end-to-end example of service communication, see [Cross-Process Communication Example](cross-process-communication-example.md).
+
 See `src/shared/serviceRegistry/index.ts` for full API.
 
 ## Directory Structure

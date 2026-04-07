@@ -4,6 +4,7 @@ import type { ServiceInfo } from './types';
 import { apiDefinitions } from './apiDefinitions';
 export { ServiceTimeoutError } from './error';
 import { Singleton } from '@/utils/singleton';
+import { serviceMetadataRegistry } from './serviceMetadataRegistry';
 
 @Singleton()
 export class ServiceRegistry {
@@ -32,7 +33,7 @@ export class ServiceRegistry {
 
   implementService(channelLike: ChannelLike | ChannelLike[], ...instances: object[]): void {
     for (const instance of instances) {
-      const apiClass = this.findApiClass(instance);
+      const apiClass = serviceMetadataRegistry.findApiClass(instance);
 
       if (!apiClass) {
         throw new Error(
@@ -41,8 +42,16 @@ export class ServiceRegistry {
         );
       }
 
-      const serviceInfo = (apiClass as unknown as Record<string, unknown>)
-        .__serviceInfo__ as ServiceInfo;
+      const metadata = serviceMetadataRegistry.getServiceMetadata(apiClass);
+      if (!metadata) {
+        throw new Error(`Service ${instance.constructor.name} metadata not found`);
+      }
+
+      const serviceInfo: ServiceInfo = {
+        serviceName: metadata.serviceName,
+        processType: metadata.processType,
+      };
+
       this.serviceImplementations.set(serviceInfo.serviceName, {
         instance,
         processType: serviceInfo.processType,
@@ -94,17 +103,6 @@ export class ServiceRegistry {
       proto = Object.getPrototypeOf(proto);
     }
     return methods;
-  }
-
-  private findApiClass(instance: object): abstract new () => object | null {
-    let proto = instance.constructor as unknown as abstract new () => object;
-    while (proto && proto !== Function.prototype) {
-      if ((proto as unknown as Record<string, unknown>).__serviceInfo__) {
-        return proto;
-      }
-      proto = Object.getPrototypeOf(proto) as unknown as abstract new () => object;
-    }
-    return null as unknown as abstract new () => object | null;
   }
 }
 

@@ -1,5 +1,6 @@
 import path from 'node:path';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import { sourceFilePlugin } from './src/vitePlugins/sourceFilePlugin';
 import { fileURLToPath } from 'node:url';
@@ -19,7 +20,7 @@ export default defineConfig({
     outDir: '../../dist/renderer',
     emptyOutDir: true,
   },
-  plugins: [react(), sourceFilePlugin()],
+  plugins: [react(), tailwindcss(), sourceFilePlugin()],
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     'process.env.PROCESS_TYPE': JSON.stringify('renderer') as 'main' | 'preload' | 'renderer',
