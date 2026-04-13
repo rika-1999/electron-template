@@ -124,18 +124,8 @@ export const logManager = {
           };
           return [userFormat(info)];
         };
-        mainLog.transports.file.format = formatWrapper as (params: {
-          message?: ElectronLogMessage;
-          data?: unknown[];
-          level?: string;
-          date?: Date;
-        }) => unknown[];
-        mainLog.transports.console.format = formatWrapper as (params: {
-          message?: ElectronLogMessage;
-          data?: unknown[];
-          level?: string;
-          date?: Date;
-        }) => unknown[];
+        mainLog.transports.file.format = formatWrapper;
+        mainLog.transports.console.format = formatWrapper;
       }
     }
   },

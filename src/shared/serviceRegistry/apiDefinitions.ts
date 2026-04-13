@@ -1,4 +1,4 @@
-import type { ChannelLike } from '@/shared/channel/types';
+import { ChannelTimeoutError, type ChannelLike } from '@/shared/channel';
 import { AsyncifyFunctions } from '@/utils/type';
 import { ServiceTimeoutError } from './error';
 import { serviceMetadataRegistry } from './serviceMetadataRegistry';
@@ -44,7 +44,14 @@ export const apiDefinitions = (() => {
     const channelMethod = `${serviceId}:${method}`;
 
     if ('request' in channelLike && typeof channelLike.request === 'function') {
-      return (channelLike as ChannelLike).request(channelMethod, args, timeout);
+      try {
+        return await (channelLike as ChannelLike).request(channelMethod, args, timeout);
+      } catch (e: unknown) {
+        if ((e as ChannelTimeoutError).name === 'ChannelTimeoutError') {
+          throw new ServiceTimeoutError(serviceId, method, timeout, e);
+        }
+        throw e;
+      }
     }
 
     throw new Error('Channel does not support request method');

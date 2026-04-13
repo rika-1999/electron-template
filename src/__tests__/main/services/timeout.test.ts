@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { createChannelMock } from '@/__tests__/infrastructure/helpers/channelHelpers';
 import { Timeout, MethodTimeout } from '@/shared/serviceRegistry/decorators';
-import { serviceMetadataRegistry } from '@/shared/serviceRegistry/serviceMetadataRegistry';
+import { serviceRegistry, ServiceTimeoutError } from '@/shared/serviceRegistry';
 
 describe('Service Registry Timeout', () => {
   beforeEach(() => {
@@ -12,13 +12,15 @@ describe('Service Registry Timeout', () => {
     vi.useRealTimers();
   });
 
-  describe('@Timeout class decorator', () => {
+  describe('@Timeout class decorator', async () => {
     @Timeout(500)
     abstract class TestTimeoutApi {
       abstract fastMethod(): Promise<string>;
       abstract slowMethod(): Promise<string>;
       abstract normalMethod(): Promise<string>;
     }
+
+    const timeoutApi = serviceRegistry.defineApi(TestTimeoutApi, 'main');
 
     class TimeoutService extends TestTimeoutApi {
       async fastMethod(): Promise<string> {
@@ -36,8 +38,6 @@ describe('Service Registry Timeout', () => {
     }
 
     it('should apply timeout to all methods in class', async () => {
-      const { serviceRegistry } = await import('@/shared/serviceRegistry');
-      const timeoutApi = serviceRegistry.defineApi(TestTimeoutApi, 'main');
       const { mainChannel } = await createChannelMock({ webContentsId: 1 });
       const timeoutService = new TimeoutService();
       serviceRegistry.implementService(mainChannel, timeoutService);
@@ -47,8 +47,6 @@ describe('Service Registry Timeout', () => {
     });
 
     it('should timeout methods that exceed class timeout', async () => {
-      const { serviceRegistry, ServiceTimeoutError } = await import('@/shared/serviceRegistry');
-      const timeoutApi = serviceRegistry.defineApi(TestTimeoutApi, 'main');
       const { mainChannel } = await createChannelMock({ webContentsId: 1 });
       const timeoutService = new TimeoutService();
       serviceRegistry.implementService(mainChannel, timeoutService);
@@ -65,16 +63,20 @@ describe('Service Registry Timeout', () => {
     });
   });
 
-  describe('@MethodTimeout method decorator', () => {
+  describe('@MethodTimeout method decorator', async () => {
     class TestTimeoutWithClassApi {
+      @MethodTimeout(1000)
       method1(): Promise<string> {
         throw new Error('Not implemented');
       }
 
+      @MethodTimeout(100)
       method2(): Promise<string> {
         throw new Error('Not implemented');
       }
     }
+
+    const methodTimeoutApi = serviceRegistry.defineApi(TestTimeoutWithClassApi, 'main');
 
     class MethodTimeoutService extends TestTimeoutWithClassApi {
       async method1(): Promise<string> {
@@ -88,13 +90,7 @@ describe('Service Registry Timeout', () => {
       }
     }
 
-    // Manually apply decorator metadata to simulate @MethodTimeout on methods
-    serviceMetadataRegistry.setMethodTimeout(TestTimeoutWithClassApi, 'method1', 1000);
-    serviceMetadataRegistry.setMethodTimeout(TestTimeoutWithClassApi, 'method2', 100);
-
     it('should apply timeout to individual methods', async () => {
-      const { serviceRegistry } = await import('@/shared/serviceRegistry');
-      const methodTimeoutApi = serviceRegistry.defineApi(TestTimeoutWithClassApi, 'main');
       const { mainChannel } = await createChannelMock({ webContentsId: 1 });
       const methodTimeoutService = new MethodTimeoutService();
       serviceRegistry.implementService(mainChannel, methodTimeoutService);
@@ -105,8 +101,6 @@ describe('Service Registry Timeout', () => {
     });
 
     it('should timeout methods exceeding method-specific timeout', async () => {
-      const { serviceRegistry, ServiceTimeoutError } = await import('@/shared/serviceRegistry');
-      const methodTimeoutApi = serviceRegistry.defineApi(TestTimeoutWithClassApi, 'main');
       const { mainChannel } = await createChannelMock({ webContentsId: 1 });
       const methodTimeoutService = new MethodTimeoutService();
       serviceRegistry.implementService(mainChannel, methodTimeoutService);
@@ -123,11 +117,12 @@ describe('Service Registry Timeout', () => {
     });
   });
 
-  describe('ServiceTimeoutError', () => {
+  describe('ServiceTimeoutError', async () => {
     @Timeout(500)
     abstract class ErrorApi {
       abstract timeoutMethod(): Promise<string>;
     }
+    const errorApi = serviceRegistry.defineApi(ErrorApi, 'main');
 
     class ErrorService extends ErrorApi {
       async timeoutMethod(): Promise<string> {
@@ -137,8 +132,6 @@ describe('Service Registry Timeout', () => {
     }
 
     it('should have correct error name', async () => {
-      const { serviceRegistry, ServiceTimeoutError } = await import('@/shared/serviceRegistry');
-      const errorApi = serviceRegistry.defineApi(ErrorApi, 'main');
       const { mainChannel } = await createChannelMock({ webContentsId: 1 });
       const errorService = new ErrorService();
       serviceRegistry.implementService(mainChannel, errorService);
@@ -157,8 +150,6 @@ describe('Service Registry Timeout', () => {
     });
 
     it('should include service name in error message', async () => {
-      const { serviceRegistry } = await import('@/shared/serviceRegistry');
-      const errorApi = serviceRegistry.defineApi(ErrorApi, 'main');
       const { mainChannel } = await createChannelMock({ webContentsId: 1 });
       const errorService = new ErrorService();
       serviceRegistry.implementService(mainChannel, errorService);
@@ -174,8 +165,6 @@ describe('Service Registry Timeout', () => {
     });
 
     it('should include method name in error message', async () => {
-      const { serviceRegistry } = await import('@/shared/serviceRegistry');
-      const errorApi = serviceRegistry.defineApi(ErrorApi, 'main');
       const { mainChannel } = await createChannelMock({ webContentsId: 1 });
       const errorService = new ErrorService();
       serviceRegistry.implementService(mainChannel, errorService);
@@ -191,8 +180,6 @@ describe('Service Registry Timeout', () => {
     });
 
     it('should include timeout duration in error message', async () => {
-      const { serviceRegistry } = await import('@/shared/serviceRegistry');
-      const errorApi = serviceRegistry.defineApi(ErrorApi, 'main');
       const { mainChannel } = await createChannelMock({ webContentsId: 1 });
       const errorService = new ErrorService();
       serviceRegistry.implementService(mainChannel, errorService);
@@ -208,9 +195,10 @@ describe('Service Registry Timeout', () => {
     });
   });
 
-  describe('timeout priority (method > class > global > built-in)', () => {
+  describe('timeout priority (method > class > global > built-in)', async () => {
     @Timeout(500)
     abstract class PriorityApi {
+      @MethodTimeout(1000)
       methodWithTimeout(): Promise<string> {
         throw new Error('Not implemented');
       }
@@ -218,12 +206,7 @@ describe('Service Registry Timeout', () => {
         throw new Error('Not implemented');
       }
     }
-
-    Object.assign(PriorityApi.prototype, {
-      methodWithTimeout: MethodTimeout(1000)(PriorityApi.prototype, 'methodWithTimeout', {
-        value: PriorityApi.prototype.methodWithTimeout,
-      }),
-    });
+    const priorityApi = serviceRegistry.defineApi(PriorityApi, 'main');
 
     class PriorityService extends PriorityApi {
       async methodWithTimeout(): Promise<string> {
@@ -238,8 +221,6 @@ describe('Service Registry Timeout', () => {
     }
 
     it('should prioritize method timeout over class timeout', async () => {
-      const { serviceRegistry, ServiceTimeoutError } = await import('@/shared/serviceRegistry');
-      const priorityApi = serviceRegistry.defineApi(PriorityApi, 'main');
       const { mainChannel } = await createChannelMock({ webContentsId: 1 });
       const priorityService = new PriorityService();
       serviceRegistry.implementService(mainChannel, priorityService);
@@ -254,9 +235,7 @@ describe('Service Registry Timeout', () => {
     });
 
     it('should prioritize class timeout over global timeout', async () => {
-      const { serviceRegistry, ServiceTimeoutError } = await import('@/shared/serviceRegistry');
       serviceRegistry.setDefaultTimeout(2000);
-      const priorityApi = serviceRegistry.defineApi(PriorityApi, 'main');
       const { mainChannel } = await createChannelMock({ webContentsId: 1 });
       const priorityService = new PriorityService();
       serviceRegistry.implementService(mainChannel, priorityService);
@@ -278,7 +257,6 @@ describe('Service Registry Timeout', () => {
         }
       }
 
-      const { serviceRegistry, ServiceTimeoutError } = await import('@/shared/serviceRegistry');
       serviceRegistry.setDefaultTimeout(500);
       const noTimeoutApi = serviceRegistry.defineApi(NoTimeoutApi, 'main');
       const { mainChannel } = await createChannelMock({ webContentsId: 1 });
@@ -308,7 +286,6 @@ describe('Service Registry Timeout', () => {
         }
       }
 
-      const { serviceRegistry, ServiceTimeoutError } = await import('@/shared/serviceRegistry');
       serviceRegistry.setDefaultTimeout(1000);
       const defaultTimeoutApi = serviceRegistry.defineApi(CustomDefaultTimeoutApi, 'main');
       const { mainChannel } = await createChannelMock({ webContentsId: 1 });
@@ -344,7 +321,6 @@ describe('Service Registry Timeout', () => {
         }
       }
 
-      const { serviceRegistry, ServiceTimeoutError } = await import('@/shared/serviceRegistry');
       const localTimeoutApi = serviceRegistry.defineApi(LocalTimeoutApi, 'main');
       const { mainChannel } = await createChannelMock({ webContentsId: 1 });
       const localTimeoutService = new LocalTimeoutService();
@@ -359,81 +335,35 @@ describe('Service Registry Timeout', () => {
   });
 
   describe('cross-process timeout passing to channel.request', () => {
+    @Timeout(100)
     abstract class CrossProcessApi {
       abstract remoteMethod(): Promise<string>;
       abstract fastRemoteMethod(): Promise<string>;
     }
 
     it('should pass timeout to channel.request for remote calls', async () => {
-      const mockRequest = vi.fn().mockResolvedValue('remote-result');
-      const mockChannel = {
-        request: mockRequest,
-        onRequest: vi.fn(),
-      } as import('@/shared/channel/types').ChannelLike;
-
-      const { serviceRegistry } = await import('@/shared/serviceRegistry');
-      serviceRegistry.defineApi(CrossProcessApi, 'renderer');
-      serviceRegistry.setDefaultChannel(mockChannel);
-
+      const { mainChannel, rendererChannel } = await createChannelMock({ webContentsId: 1 });
       const crossProcessApi = serviceRegistry.defineApi(CrossProcessApi, 'renderer');
-      await crossProcessApi.remoteMethod();
+      serviceRegistry.setDefaultChannel(mainChannel);
 
-      expect(mockRequest).toHaveBeenCalledWith('CrossProcessApi:remoteMethod', [], 10000);
-    });
-
-    it('should pass custom timeout to channel.request', async () => {
-      @Timeout(500)
-      abstract class CustomTimeoutApi extends CrossProcessApi {
-        abstract remoteMethod(): Promise<string>;
-        abstract fastRemoteMethod(): Promise<string>;
-      }
-
-      const mockRequest = vi.fn().mockResolvedValue('remote-result');
-      const mockChannel = {
-        request: mockRequest,
-        onRequest: vi.fn(),
-      } as import('@/shared/channel/types').ChannelLike;
-
-      const { serviceRegistry } = await import('@/shared/serviceRegistry');
-      serviceRegistry.defineApi(CustomTimeoutApi, 'renderer');
-
-      const api = serviceRegistry.defineApi(CustomTimeoutApi, 'renderer').use(mockChannel);
-      await api.remoteMethod();
-
-      expect(mockRequest).toHaveBeenCalledWith('CustomTimeoutApi:remoteMethod', [], 500);
-    });
-
-    it('should handle channel request timeout correctly', async () => {
-      let timeoutCallback: (() => void) | null = null;
-      const mockRequest = vi.fn().mockImplementation(() => {
-        return new Promise((resolve, reject) => {
-          timeoutCallback = () => {
-            reject(new Error('Channel timeout'));
-          };
-        });
+      rendererChannel.onRequest('CrossProcessApi:remoteMethod', async (data) => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        return 'result';
+      });
+      rendererChannel.onRequest('CrossProcessApi:fastRemoteMethod', async (data) => {
+        return 'result';
       });
 
-      const mockChannel = {
-        request: mockRequest,
-        onRequest: vi.fn(),
-      } as import('@/shared/channel/types').ChannelLike;
-
-      const { serviceRegistry } = await import('@/shared/serviceRegistry');
-      const crossProcessApi = serviceRegistry.defineApi(CrossProcessApi, 'renderer');
-      serviceRegistry.setDefaultChannel(mockChannel);
-
       const promise = crossProcessApi.remoteMethod();
-
-      vi.advanceTimersByTime(50);
-      (timeoutCallback as unknown as () => void)?.();
-
-      await expect(promise).rejects.toThrow('Channel timeout');
+      vi.advanceTimersByTime(200);
+      const promise2 = crossProcessApi.fastRemoteMethod();
+      await expect(promise).rejects.toThrow(ServiceTimeoutError);
+      await expect(promise2).resolves.toBe('result');
     });
   });
 
   describe('default timeout configuration', () => {
     it('should set default timeout via setDefaultTimeout', async () => {
-      const { serviceRegistry } = await import('@/shared/serviceRegistry');
       serviceRegistry.setDefaultTimeout(3000);
 
       abstract class DefaultTimeoutApi {
@@ -456,7 +386,6 @@ describe('Service Registry Timeout', () => {
     });
 
     it('should apply default timeout to all services', async () => {
-      const { serviceRegistry, ServiceTimeoutError } = await import('@/shared/serviceRegistry');
       serviceRegistry.setDefaultTimeout(200);
 
       abstract class Api1 {
@@ -482,7 +411,6 @@ describe('Service Registry Timeout', () => {
     });
 
     it('should override default timeout with class timeout', async () => {
-      const { serviceRegistry } = await import('@/shared/serviceRegistry');
       serviceRegistry.setDefaultTimeout(1000);
 
       @Timeout(500)
@@ -502,7 +430,6 @@ describe('Service Registry Timeout', () => {
       const service = new OverrideService();
       serviceRegistry.implementService(mainChannel, service);
 
-      const { ServiceTimeoutError } = await import('@/shared/serviceRegistry');
       const promise1 = api.method();
       vi.advanceTimersByTime(600);
       await expect(promise1).rejects.toThrow(ServiceTimeoutError);

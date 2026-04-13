@@ -1,5 +1,7 @@
 import { Singleton } from '@/utils/singleton';
 
+const SERVICE_METADATA_SYMBOL = Symbol('__serviceMetadata__');
+
 export interface ServiceMetadata {
   serviceName: string;
   processType: 'main' | 'preload' | 'renderer';
@@ -11,7 +13,7 @@ export interface ServiceMetadata {
 export class ServiceMetadataRegistry {
   getServiceMetadata(ApiClass: abstract new () => object): ServiceMetadata | null {
     return (
-      (ApiClass as unknown as { __serviceMetadata__?: ServiceMetadata }).__serviceMetadata__ ?? null
+      (ApiClass as unknown as Record<symbol, ServiceMetadata>)[SERVICE_METADATA_SYMBOL] ?? null
     );
   }
 
@@ -26,8 +28,7 @@ export class ServiceMetadataRegistry {
       processType: 'main',
       methodTimeouts: new Map(),
     };
-    (ApiClass as unknown as { __serviceMetadata__: ServiceMetadata }).__serviceMetadata__ =
-      newMetadata;
+    (ApiClass as unknown as Record<symbol, ServiceMetadata>)[SERVICE_METADATA_SYMBOL] = newMetadata;
     return newMetadata;
   }
 
@@ -51,7 +52,11 @@ export class ServiceMetadataRegistry {
     metadata.methodTimeouts.set(methodName, timeout);
   }
 
-  getEffectiveTimeout(ApiClass: abstract new () => object, methodName: string, defaultValue: number): number {
+  getEffectiveTimeout(
+    ApiClass: abstract new () => object,
+    methodName: string,
+    defaultValue: number,
+  ): number {
     const metadata = this.getServiceMetadata(ApiClass);
     if (!metadata) {
       return defaultValue;

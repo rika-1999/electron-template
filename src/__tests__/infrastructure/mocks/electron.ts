@@ -1,6 +1,4 @@
 import { vi } from 'vitest';
-import { createMockMessageChannel } from '../helpers/channelHelpers';
-
 // Singleton mock instances — shared by setup AND test assertions
 export const mockApp = {
   on: vi.fn(),
@@ -128,7 +126,53 @@ export const mockWebContentsView = {
   destroy: vi.fn(),
 };
 
-export { createMockMessageChannel };
+/**
+ * Creates a new pair of connected mock MessagePort objects.
+ * Each call returns independent port1 and port2 instances with fresh state.
+ * port1.postMessage triggers port2.onmessage and vice versa.
+ */
+export function createMockMessageChannel() {
+  const port1 = {
+    postMessage: vi.fn(),
+    on: vi.fn((event: string, handler: (...args: unknown[]) => void) => {
+      if (event === 'message') {
+        port1.onmessage = handler as ((...args: unknown[]) => void) | null;
+      }
+    }),
+    start: vi.fn(),
+    close: vi.fn(),
+    lastMessage: undefined as unknown,
+    onmessage: null as ((...args: unknown[]) => void) | null,
+  };
+
+  const port2 = {
+    postMessage: vi.fn(),
+    on: vi.fn((event: string, handler: (...args: unknown[]) => void) => {
+      if (event === 'message') {
+        port2.onmessage = handler as ((...args: unknown[]) => void) | null;
+      }
+    }),
+    start: vi.fn(),
+    close: vi.fn(),
+    lastMessage: undefined as unknown,
+    onmessage: null as ((...args: unknown[]) => void) | null,
+  };
+
+  port1.postMessage = vi.fn((data: unknown) => {
+    port2.onmessage?.({ data });
+    port1.lastMessage = data;
+  });
+
+  port2.postMessage = vi.fn((data: unknown) => {
+    port1.onmessage?.({ data });
+    port2.lastMessage = data;
+  });
+
+  return {
+    port1,
+    port2,
+  };
+}
 
 export function createMockElectron() {
   return {
