@@ -28,7 +28,7 @@ pnpm install
 pnpm run dev
 ```
 
-> **Note**: The dev script uses `scripts/electron-dev.mjs` to launch Electron, which removes `ELECTRON_RUN_AS_NODE` env var injected by some IDE terminals (e.g. Windsurf). For main process changes, restart manually.
+> **Note**: The dev script uses `scripts/dev.mjs` to build main/preload first, then starts the renderer dev server and Electron. For main process changes, restart manually.
 
 ## Build
 
@@ -77,7 +77,7 @@ The update server must serve `latest.yml` (Windows) or `latest-mac.yml` (macOS) 
 
 ## IPC Communication
 
-All inter-process communication goes through a unified `channel` module (`src/shared/channel.ts`) built on Electron's `MessageChannelMain`. It supports bidirectional request-response between main and renderer.
+All inter-process communication goes through a unified `channel` module (`src/shared/channel/index.ts`) built on Electron's `MessageChannelMain`. It supports bidirectional request-response between main and renderer.
 
 ### Default channel (backward-compatible singleton)
 
@@ -85,7 +85,7 @@ All inter-process communication goes through a unified `channel` module (`src/sh
 import { channel } from '@/shared/channel'
 
 // Main: handle requests from renderer
-channel.on('my:method', async (payload) => {
+channel.onRequest('my:method', async (payload) => {
   return { result: 'ok' }
 })
 
@@ -93,14 +93,14 @@ channel.on('my:method', async (payload) => {
 const result = await channel.request('my:method', payload)
 ```
 
-### ChannelInstance (per-view independent channels)
+### Channel (per-view independent channels)
 
 ```ts
 import { Channel } from '@/shared/channel'
 
-const ch = new ChannelInstance()
+const ch = new Channel()
 await ch.init({ webContentsId: view.webContents.id })
-ch.on('ping', async () => 'pong')
+ch.onRequest('ping', async () => 'pong')
 ch.destroy()
 ```
 
@@ -133,13 +133,13 @@ viewManager.on('view-destroyed', (id) => { ... })
 // Built-in channel communication
 await viewManager.requestTo(viewId, 'method', payload)
 await viewManager.broadcast('method', payload)
-viewManager.onAnyMessage('method', (viewId, payload) => { ... })
+viewManager.onAnyRequest('method', (viewId, payload) => { ... })
 
 // Cleanup
 viewManager.destroyView(viewId)
 ```
 
-Each sub-window uses a dedicated preload script (`src/preload/view.ts`) with its own `ChannelInstance`.
+Each sub-window uses a dedicated preload script (`src/preload/view.ts`) with its own `Channel`.
 
 ## Path Alias
 
@@ -155,41 +155,47 @@ import { channel } from '@/shared/channel'
 ```
 src/
 ├── main/
-│   ├── index.ts              # App lifecycle entry, exports viewManager singleton
-│   ├── window.ts             # BrowserWindow creation
-│   ├── ipc.ts                # IPC / channel handler registration
+│   ├── index.ts              # App lifecycle entry
+│   ├── mainWindow.ts         # Main BrowserWindow creation
+│   ├── services/             # Main-process service implementations
+│   ├── tray/                 # System tray integration
 │   ├── updater/
 │   │   ├── index.ts          # Auto-update service
 │   │   └── types.ts          # Update types
 │   ├── viewManager/
 │   │   ├── index.ts          # ViewManager class + singleton export
-│   │   ├── index.test.ts     # ViewManager unit tests
-│   │   ├── managedView.ts   # ManagedView: WebContentsView + ChannelInstance wrapper
+│   │   ├── managedView.ts    # ManagedView: WebContentsView + Channel wrapper
 │   │   └── types.ts          # Internal types (ManagedView interface, handler types)
+│   ├── windowManager/        # BrowserWindow management
 │   └── utils/
 │       └── paths.ts          # Runtime path helpers (preload, view-preload)
 ├── preload/
 │   ├── index.ts              # Main window preload (exposes window.channel)
-│   └── view.ts               # Sub-window preload (separate ChannelInstance)
+│   └── view.ts               # Sub-window preload (separate Channel)
 ├── renderer/
 │   ├── index.html
 │   ├── main.tsx              # React entry
 │   ├── App.tsx
 │   └── styles/
 ├── shared/
-│   └── view.ts               # Shared view types (ViewState, ViewOptions, ViewEventMap)
+│   ├── channel/              # IPC channel implementation
+│   ├── serviceRegistry/      # Service registration and routing
+│   ├── services/             # Shared service API definitions
+│   ├── window.ts
+│   └── view.ts
 ├── utils/
-│   ├── channel/
-│   │   ├── index.ts          # ChannelInstance class + default channel singleton
-│   │   ├── index.test.ts     # Channel unit tests
-│   │   └── types.ts          # Channel message protocol types (ChannelAPI, etc.)
-│   ├── typedEmitter.ts      # Lightweight type-safe event emitter
+│   ├── log/                  # Unified logger (electron-log wrapper)
+│   ├── serialize/            # Error/value serialization helpers
+│   ├── typedEmitter.ts       # Lightweight type-safe event emitter
 │   ├── env.ts                # Process environment helpers
-│   └── log.ts                # Unified logger (electron-log wrapper)
+│   └── promise.ts
+├── __tests__/                # Unit/integration test suites
+│   └── infrastructure/       # Shared test setup, mocks and helpers
 ├── vitePlugins/
 │   └── sourceFilePlugin.ts   # Vite plugin: injects __SOURCE_FILE__
-└── test/
-    └── setup.ts
+tests/
+└── e2e/                      # Playwright end-to-end tests
 scripts/
-└── electron-dev.mjs          # Dev launcher (removes ELECTRON_RUN_AS_NODE)
+├── build.mjs                 # Production build orchestrator
+└── dev.mjs                   # Dev launcher
 ```

@@ -16,7 +16,7 @@ Electron runs in 3 process types:
 | ----------------- | ------------------------------------- | ---------------------------------------- |
 | `viewManager`     | `src/main/viewManager/index.ts`       | All `WebContentsView` instances          |
 | `windowManager`   | `src/main/windowManager/index.ts`     | All `BrowserWindow` instances            |
-| `channel`         | `src/shared/channel.ts`               | Default IPC channel (MessageChannelMain) |
+| `channel`         | `src/shared/channel/index.ts`         | Default IPC channel (MessageChannelMain) |
 | `serviceRegistry` | `src/shared/serviceRegistry/index.ts` | Service registration and routing         |
 
 ## ViewManager Modes
@@ -27,7 +27,7 @@ Electron runs in 3 process types:
 - **detached** — hosted in its own `BaseWindow`
 - **background** — offscreen rendering (`offscreen: true`), no window attachment
 
-Each sub-window uses its own preload (`src/preload/view.ts`) with an independent `ChannelInstance`.
+Each sub-window uses its own preload (`src/preload/view.ts`) with an independent `Channel`.
 
 ## IPC Communication
 
@@ -79,8 +79,6 @@ src/
 ├── main/                    # Main process
 │   ├── index.ts           # App entry, exports singletons
 │   ├── mainWindow.ts     # Main BrowserWindow creation
-│   ├── ipc.ts             # IPC handler registration
-│   ├── assets/            # App assets (icon)
 │   ├── updater/           # Auto-update service
 │   ├── tray/              # System tray
 │   ├── utils/paths.ts    # Runtime path helpers
@@ -89,10 +87,10 @@ src/
 │   └── services/         # Service implementations (main process)
 ├── preload/                # Preload scripts
 │   ├── index.ts          # Main window preload
-│   └── view.ts           # Sub-window preload (per-view ChannelInstance)
+│   └── view.ts           # Sub-window preload (per-view Channel)
 ├── renderer/               # React SPA (dev only)
 ├── shared/                 # Shared types + infrastructure
-│   ├── channel.ts        # IPC channel (MessageChannelMain)
+│   ├── channel/          # IPC channel (MessageChannelMain)
 │   ├── serviceRegistry/  # Service registration center
 │   ├── services/         # Service API definitions
 │   ├── window.ts

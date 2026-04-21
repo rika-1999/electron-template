@@ -8,7 +8,7 @@ describe('Counter Component', () => {
     const mainChannel = await createMainChannelMock();
 
     let calledCount = 0;
-    mainChannel.onRequest('CounterMainApi:increment', (data: unknown) => {
+    mainChannel.onRequest('CounterMainApi:increment', (_data: unknown) => {
       calledCount += 1;
     });
 
@@ -26,7 +26,7 @@ describe('Counter Component', () => {
     const mainChannel = await createMainChannelMock();
 
     let calledCount = 0;
-    mainChannel.onRequest('CounterMainApi:decrement', (data: unknown) => {
+    mainChannel.onRequest('CounterMainApi:decrement', (_data: unknown) => {
       calledCount += 1;
     });
 

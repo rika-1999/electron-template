@@ -21,7 +21,7 @@ See [Architecture](architecture.md) for project overview and [Patterns](patterns
 
 ## Components
 
-### Channel (`src/utils/channel/index.ts`)
+### Channel (`src/shared/channel/index.ts`)
 
 **Responsibilities**: Registration and initialization
 
@@ -38,7 +38,7 @@ See [Architecture](architecture.md) for project overview and [Patterns](patterns
 - **Preload**: Requests port via IPC, sets up port, optionally exposes API to renderer
 - **Renderer**: Uses `window.__app_channel__` as API (no port management)
 
-### ChannelApiImpl (`src/utils/channel/channel-api-impl.ts`)
+### ChannelApiImpl (`src/shared/channel/impl.ts`)
 
 **Responsibilities**: Message handling and state
 
@@ -163,9 +163,9 @@ See `src/shared/serviceRegistry/index.ts` for ServiceRegistry API documentation.
 
 | File                                    | Purpose                                               |
 | --------------------------------------- | ----------------------------------------------------- |
-| `src/utils/channel/index.ts`            | `Channel` facade class                                |
-| `src/utils/channel/channel-api-impl.ts` | `ChannelApiImpl` core logic                           |
-| `src/utils/channel/types.ts`            | `ChannelRequest`, `ChannelResponse`, `ChannelMessage` |
-| `src/utils/channel/error.ts`            | `ChannelTimeoutError`                                 |
-| `src/shared/channel.ts`                 | `ChannelAPI`, `ChannelCenter` interfaces              |
+| `src/shared/channel/index.ts`           | `Channel` facade class                                |
+| `src/shared/channel/impl.ts`            | `ChannelApiImpl` core logic                           |
+| `src/shared/channel/types.ts`           | `ChannelRequest`, `ChannelResponse`, `ChannelMessage` |
+| `src/shared/channel/error.ts`           | `ChannelTimeoutError`                                 |
+| `src/shared/channel/types.ts`           | `ChannelAPI`, `ChannelCenter` interfaces              |
 | `src/utils/serialize/index.ts`          | `serialize()` / `deserialize()` for errors            |

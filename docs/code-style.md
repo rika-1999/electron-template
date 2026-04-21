@@ -34,7 +34,7 @@ Run `pnpm run lint -- --fix` before committing.
 
 | Element              | Convention                      | Example                             |
 | -------------------- | ------------------------------- | ----------------------------------- |
-| Classes              | PascalCase                      | `ManagedWindow`, `ChannelInstance`  |
+| Classes              | PascalCase                      | `ManagedWindow`, `Channel`          |
 | Interfaces           | PascalCase, prefix `I` optional | `IManagedWindow` or `ManagedWindow` |
 | Private fields       | `_` prefix + camelCase          | `_loaded`, `_forceQuit`             |
 | Methods              | camelCase                       | `createWindow`, `destroyView`       |

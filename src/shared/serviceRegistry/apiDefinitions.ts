@@ -34,6 +34,18 @@ export const apiDefinitions = (() => {
     });
   }
 
+  function toErrorCause(error: unknown): Error | undefined {
+    if (error instanceof Error) {
+      return error;
+    }
+
+    if (typeof error === 'string') {
+      return new Error(error);
+    }
+
+    return undefined;
+  }
+
   async function invokeRemote(
     channelLike: ChannelLike,
     serviceId: string,
@@ -48,7 +60,7 @@ export const apiDefinitions = (() => {
         return await (channelLike as ChannelLike).request(channelMethod, args, timeout);
       } catch (e: unknown) {
         if ((e as ChannelTimeoutError).name === 'ChannelTimeoutError') {
-          throw new ServiceTimeoutError(serviceId, method, timeout, e);
+          throw new ServiceTimeoutError(serviceId, method, timeout, toErrorCause(e));
         }
         throw e;
       }

@@ -346,11 +346,11 @@ describe('Service Registry Timeout', () => {
       const crossProcessApi = serviceRegistry.defineApi(CrossProcessApi, 'renderer');
       serviceRegistry.setDefaultChannel(mainChannel);
 
-      rendererChannel.onRequest('CrossProcessApi:remoteMethod', async (data) => {
+      rendererChannel.onRequest('CrossProcessApi:remoteMethod', async (_data) => {
         await new Promise((resolve) => setTimeout(resolve, 200));
         return 'result';
       });
-      rendererChannel.onRequest('CrossProcessApi:fastRemoteMethod', async (data) => {
+      rendererChannel.onRequest('CrossProcessApi:fastRemoteMethod', async (_data) => {
         return 'result';
       });
 
