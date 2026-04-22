@@ -1,6 +1,6 @@
 import type { Channel } from '@/shared/channel';
 
-export type ViewType = 'embedded' | 'detached' | 'background';
+export type ViewType = 'embedded' | 'detached' | 'offscreen';
 
 export interface ViewState {
   id: string;
@@ -12,14 +12,15 @@ export interface ViewState {
   loaded: boolean;
 }
 
-export interface ViewOptions {
+export type ViewOptions = Electron.WebPreferences & {
   url: string;
+  id?: string;
   type?: ViewType;
   bounds?: Electron.Rectangle;
   channel?: Channel;
-  preload?: string;
-  id?: string;
-}
+  defaultChannelTimeout?: number;
+  loadUrlOptions?: Electron.LoadURLOptions;
+};
 
 export interface ManagedViewEventMap {
   'state-changed': (state: ViewState) => void;

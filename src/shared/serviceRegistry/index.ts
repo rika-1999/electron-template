@@ -8,11 +8,18 @@ import { serviceMetadataRegistry } from './serviceMetadataRegistry';
 
 @Singleton()
 export class ServiceRegistry {
-  private serviceImplementations = new Map<string, { instance: object; processType: string }>();
+  private serviceImplementations = new Map<string, { instance: WeakRef<object>; processType: string }>();
 
   constructor() {
     apiDefinitions.setServiceImplementationGetter((serviceName) => {
-      return this.serviceImplementations.get(serviceName);
+      const entry = this.serviceImplementations.get(serviceName);
+      if (!entry) {return undefined;}
+      const instance = entry.instance.deref();
+      if (!instance) {
+        this.serviceImplementations.delete(serviceName);
+        throw new Error(`Service '${serviceName}' instance has been garbage collected`);
+      }
+      return { instance };
     });
   }
 
@@ -53,7 +60,7 @@ export class ServiceRegistry {
       };
 
       this.serviceImplementations.set(serviceInfo.serviceName, {
-        instance,
+        instance: new WeakRef(instance),
         processType: serviceInfo.processType,
       });
 

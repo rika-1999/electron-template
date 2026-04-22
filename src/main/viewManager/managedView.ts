@@ -1,4 +1,4 @@
-import { WebContentsView } from 'electron';
+import { LoadURLOptions, WebContentsView, WebPreferences } from 'electron';
 import { TypedEmitter } from '@/utils/typedEmitter';
 import { Channel } from '@/shared/channel';
 import type { ViewState, ViewType, ManagedViewEventMap } from '@/shared/view';
@@ -7,7 +7,6 @@ import type { ManagedView as IManagedView } from './types';
 export class ManagedView extends TypedEmitter<ManagedViewEventMap> implements IManagedView {
   readonly id: string;
   readonly type: ViewType;
-  readonly url: string;
   readonly webContentsView: WebContentsView;
   readonly channel: Channel;
   hostWindow: Electron.BrowserWindow | Electron.BaseWindow | null = null;
@@ -15,25 +14,21 @@ export class ManagedView extends TypedEmitter<ManagedViewEventMap> implements IM
   private _loaded = false;
   private webContentsSubscriptions: Array<() => void> = [];
 
-  constructor(
-    id: string,
-    options: { url: string; type: ViewType; channel?: Channel; preload?: string },
-  ) {
+  constructor(id: string, options: { type: ViewType; channel?: Channel } & WebPreferences) {
     super();
+    const { type, channel, ...restOptions } = options;
     this.id = id;
-    this.type = options.type;
-    this.url = options.url;
+    this.type = type;
+    this.channel = channel ?? new Channel();
 
     const webPreferences: Electron.WebPreferences = {
       contextIsolation: true,
       nodeIntegration: false,
-      ...(options.type === 'background' && { offscreen: true }),
-      ...(options.preload && { preload: options.preload }),
+      ...(options.type === 'offscreen' && { offscreen: true }),
+      ...restOptions,
     };
 
     this.webContentsView = new WebContentsView({ webPreferences });
-
-    this.channel = options.channel ?? new Channel();
 
     this.setupWebContentsListeners();
   }
@@ -63,12 +58,15 @@ export class ManagedView extends TypedEmitter<ManagedViewEventMap> implements IM
     this.subscribeToWebContents('blur', blurHandler);
   }
 
-  async load(): Promise<void> {
-    await this.webContentsView.webContents.loadURL(this.url);
-  }
-
-  async initChannel(): Promise<void> {
-    await this.channel.init({ webContentsId: this.webContentsView.webContents.id });
+  async init(
+    options: { url: string; defaultChannelTimeout?: number } & LoadURLOptions,
+  ): Promise<void> {
+    const { url, defaultChannelTimeout, ...restOptions } = options;
+    await this.channel.init({
+      webContentsId: this.webContentsView.webContents.id,
+      defaultTimeout: defaultChannelTimeout,
+    });
+    await this.webContentsView.webContents.loadURL(url, restOptions);
   }
 
   attachTo(
@@ -106,15 +104,19 @@ export class ManagedView extends TypedEmitter<ManagedViewEventMap> implements IM
     }
   }
 
+  get webContents() {
+    return this.webContentsView.webContents;
+  }
+
   get state(): ViewState {
     const wc = this.webContentsView.webContents;
     const isDestroyed = wc.isDestroyed();
     return {
       id: this.id,
       type: this.type,
-      url: this.url,
-      bounds: this.type === 'background' ? null : this.webContentsView.getBounds(),
-      visible: this.type !== 'background' && !isDestroyed,
+      url: this.webContents.getURL(),
+      bounds: this.type === 'offscreen' ? null : this.webContentsView.getBounds(),
+      visible: this.type !== 'offscreen' && !isDestroyed,
       focused: !isDestroyed && wc.isFocused?.() === true,
       loaded: this._loaded,
     };

@@ -4,7 +4,7 @@ import { Singleton } from '@/utils/singleton';
 import { logger } from '@/utils/log';
 import { portManager } from './portManager';
 
-const log = logger(__SOURCE_FILE__);
+const log = logger('channel');
 
 @Singleton('preload', 'renderer')
 export class Channel implements ChannelAPI {
@@ -29,17 +29,15 @@ export class Channel implements ChannelAPI {
     log.debug(
       `Channel init called (count: ${this.initCount}), processType: ${process.env.PROCESS_TYPE}`,
     );
-
-    if (options.defaultTimeout !== undefined) {
-      this.api.setDefaultTimeout(options.defaultTimeout);
+    const { webContentsId, defaultTimeout, expose } = options;
+    if (defaultTimeout !== undefined) {
+      this.api.setDefaultTimeout(defaultTimeout);
     }
-
     if (process.env.PROCESS_TYPE === 'main') {
-      if (options.webContentsId === undefined) {
+      if (webContentsId === undefined) {
         throw new Error('webContentsId is required in main process');
       }
-      this.webContentsId = options.webContentsId;
-
+      this.webContentsId = webContentsId;
       portManager.registerMain(this.webContentsId, (port) => {
         log.debug(`Port ready for webContentsId: ${this.webContentsId}`);
         this.setPort(port);
@@ -49,8 +47,7 @@ export class Channel implements ChannelAPI {
         log.debug('Preload port ready');
         this.setPort(port);
       });
-
-      if (options.expose !== false) {
+      if (expose !== false) {
         const { contextBridge } = await import('electron');
         contextBridge.exposeInMainWorld('__app_channel__', {
           request: this.api.request.bind(this.api),

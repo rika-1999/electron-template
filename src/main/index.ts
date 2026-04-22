@@ -5,6 +5,8 @@ import { appTray } from './tray';
 import { createMainWindow } from './mainWindow';
 import { registerMainServices } from './services';
 import { serialize } from '@/utils/serialize';
+import { windowManager } from './windowManager';
+import { viewManager } from './viewManager';
 
 logManager.initLog({
   level: app.isPackaged ? 'info' : 'debug',

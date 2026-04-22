@@ -39,7 +39,13 @@ export interface ChannelResponse {
 export type ChannelMessage = ChannelRequest | ChannelResponse;
 
 export interface InitOptions {
-  webContentsId?: number;
-  expose?: boolean;
   defaultTimeout?: number;
+  /**
+   * main only
+   */
+  webContentsId?: number;
+  /**
+   * proload only
+   */
+  expose?: boolean;
 }

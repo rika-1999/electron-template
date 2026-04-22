@@ -16,43 +16,47 @@ export class ViewManager extends TypedEmitter<ViewEventMap> implements ChannelCe
   // ─── View lifecycle ────────────────────────────────────────────────────
 
   async createView(options: ViewOptions): Promise<string> {
-    const id = options.id ?? generateViewId();
+    const {
+      id: viewId = generateViewId(),
+      type = 'embedded',
+      url,
+      channel,
+      defaultChannelTimeout,
+      loadUrlOptions = {},
+      ...restOptions
+    } = options;
 
     // Validate ID uniqueness
-    if (this.views.has(id)) {
-      throw new Error(`View with id '${id}' already exists`);
+    if (this.views.has(viewId)) {
+      throw new Error(`View with id '${viewId}' already exists`);
     }
 
-    const type = options.type ?? 'embedded';
-
-    const view = new ManagedView(id, {
-      url: options.url,
+    const view = new ManagedView(viewId, {
       type,
-      channel: options.channel,
-      preload: options.preload,
+      channel,
+      ...restOptions,
     });
 
     view.on('state-changed', (state) => {
-      this.emit('view-state-changed', id, state);
+      this.emit('view-state-changed', viewId, state);
     });
     view.on('ready', () => {
-      this.emit('view-ready', id);
+      this.emit('view-ready', viewId);
     });
 
     // Init channel and load URL before exposing view
-    await view.initChannel();
-    await view.load();
+    await view.init({ url, defaultChannelTimeout, ...loadUrlOptions });
 
     // Apply any registered onAnyRequest handlers
     for (const [method, handler] of this.anyRequestHandlers) {
-      view.channel.onRequest(method, (payload: unknown) => handler(id, payload));
+      view.channel.onRequest(method, (payload: unknown) => handler(viewId, payload));
     }
 
     // Only add to views map after full initialization
-    this.views.set(id, view);
+    this.views.set(viewId, view);
 
-    this.emit('view-created', id, view.state);
-    return id;
+    this.emit('view-created', viewId, view.state);
+    return viewId;
   }
 
   destroyView(viewId: string): void {
