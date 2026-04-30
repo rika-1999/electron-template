@@ -6,20 +6,17 @@ description: Use when user requests to commit and push changes to git repository
 # Committing Changes
 
 ## Overview
-Follows structured git commit process with required commands, message prefixes, and quality standards.
+Structured git commit with required commands, message prefixes, and quality standards.
 
 ## When to Use
-```
-User says "commit", "提交代码", "save changes", or similar
-```
-- User explicitly requests git commit and push
-- User says "we're in a hurry" or applies time pressure
+- User says "commit", "提交代码", "save changes", or similar
+- User applies time pressure ("we're in a hurry")
 - Multiple files need committing together
 
 **Do NOT use:**
-- User asks what to commit (use git status to show them)
+- User asks what to commit (show git status)
 - User asks for commit history review
-- User is reviewing changes (use git diff, don't commit)
+- User is reviewing changes (show git diff, don't commit)
 
 ## Core Pattern
 
@@ -52,12 +49,9 @@ git commit -m "docs: reorganize AGENTS.md and extract singletons to separate doc
 
 ## Implementation
 
-### Required Commands (always run in parallel)
+### Required Commands (always parallel)
 ```bash
-git status
-git diff
-git diff --cached
-git status --short
+git status && git diff && git diff --cached && git status --short
 ```
 
 ### Commit Message Format
@@ -68,26 +62,24 @@ git status --short
 ```
 
 **Rules:**
-- Prefix required (see table above)
-- Start with lowercase after prefix
+- Prefix required (see table)
+- Lowercase after prefix
 - Explain WHY, not WHAT (end-user perspective)
-- Be specific, avoid generic messages like "improved agent experience"
-- For packages/web changes, use `docs:` prefix
+- Be specific (no "improved agent experience")
+- Use `docs:` for packages/web changes
 
 ### Conflict Handling
-**STOP if conflicts occur:**
-- Do NOT attempt to fix conflicts
-- Notify user: "Merge conflicts detected. Please resolve manually."
-- Provide `git status` output showing conflict files
+**STOP if conflicts:**
+- Do NOT fix conflicts
+- Notify: "Merge conflicts detected. Please resolve manually."
+- Show `git status` with conflict files
 
 ### Push Process
 ```bash
-git add <files>
-git commit -m "<formatted message>"
-git push
+git add <files> && git commit -m "<formatted message>" && git push
 ```
 
-If branch is behind, pull first:
+If behind, pull first:
 ```bash
 git pull --rebase
 # Then commit and push
