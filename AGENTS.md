@@ -65,6 +65,8 @@ Prefer functional array methods (flatMap, filter, map) over for loops; use type 
 
 ## Commands
 
+**IMPORTANT:** `pnpm run dev` is a long-running process that will block the CLI. Do NOT run this command directly. Users should run it themselves if manual testing is needed.
+
 | Command                   | Description                                       |
 | ------------------------- | ------------------------------------------------- |
 | `pnpm run dev`            | Build dev assets + start Electron with hot reload |
