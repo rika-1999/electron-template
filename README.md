@@ -1,201 +1,51 @@
 # electron-template
 
-Electron + React + TypeScript desktop application scaffold.
+Electron + React + TypeScript 桌面应用脚手架，提供开箱即用的开发环境。
 
-## Tech Stack
-
-- **Runtime**: Electron ^34
-- **Package Manager**: pnpm
-- **Renderer**: React 18 + TypeScript + Vite
-- **Main/Preload Build**: Vite
-- **Packaging**: electron-builder
-- **Auto-update**: electron-updater (generic provider)
-- **Logging**: electron-log
-- **Testing**: Vitest + Testing Library
-
-## Requirements
-
-- Node.js >= 18
-- pnpm >= 9
-
-## Development
+## 快速开始
 
 ```bash
-# Install dependencies
 pnpm install
-
-# Start dev server (renderer + main + electron)
 pnpm run dev
 ```
 
-> **Note**: The dev script uses `scripts/dev.mjs` to build main/preload first, then starts the renderer dev server and Electron. For main process changes, restart manually.
+## 常用命令
 
-## Build
+| 命令 | 说明 |
+| --- | --- |
+| `pnpm run dev` | 启动开发环境 |
+| `pnpm run build` | 生产构建 |
+| `pnpm run test` | 运行测试 |
+| `pnpm run lint -- --fix` | 代码检查与修复 |
+| `pnpm run package:win` | 打包 Windows 安装程序 |
 
-```bash
-# Build renderer + main + preload (including sub-window preload)
-pnpm run build
+## 项目能力
 
-# Lint
-pnpm run lint
-```
+### 通信层
 
-## Packaging
+- **MessagePort IPC 通道** — 基于 `MessageChannelMain` 的双向类型安全通信，支持超时、错误序列化
+- **服务注册表** — 声明式跨进程 RPC，定义抽象 API 类后自动路由（同进程直调，跨进程走通道）
 
-```bash
-# Windows installer (NSIS x64)
-pnpm run package:win
+### 窗口管理
 
-# All platforms (current OS)
-pnpm run package
-```
+- **WindowManager** — 多窗口生命周期管理，支持 macOS 关闭隐藏到托盘
+- **ViewManager** — `WebContentsView` 子窗口管理，支持嵌入式/独立/离屏三种模式，内置通道通信和广播
 
-Output goes to `release/`.
+### 基础服务
 
-## Testing
+- **自动更新** — 封装 `electron-updater`，支持启动检查、定时检查、自动下载
+- **系统托盘** — 跨平台托盘图标，macOS 支持 template image
+- **统一日志** — 三进程通用，renderer 日志自动转发到 main，支持源文件定位
 
-```bash
-# Run tests once
-pnpm run test
+### 工具链
 
-# Watch mode
-pnpm run test:watch
-```
+- **Vite 多配置构建** — main / preload / view-preload / renderer 四个独立构建
+- **electron-builder 打包** — Windows NSIS 安装程序，支持跨平台
+- **Vitest 单元测试** — 三套测试环境（node / jsdom），完整 Electron mock
+- **Playwright E2E 测试** — 启动真实 Electron 进程验证
+- **ESLint + Prettier** — 代码规范与格式化
 
-## Auto-update Configuration
+### 前端
 
-Copy `.env.example` to `.env` and configure:
-
-```env
-UPDATE_SERVER_URL=https://your-update-server.com/releases
-AUTO_CHECK_ON_STARTUP=true
-AUTO_DOWNLOAD=false
-UPDATE_CHECK_INTERVAL=3600000
-```
-
-The update server must serve `latest.yml` (Windows) or `latest-mac.yml` (macOS) at the configured URL, compatible with `electron-updater` generic provider format. If `UPDATE_SERVER_URL` is empty, the updater is gracefully skipped.
-
-## IPC Communication
-
-All inter-process communication goes through a unified `channel` module (`src/shared/channel/index.ts`) built on Electron's `MessageChannelMain`. It supports bidirectional request-response between main and renderer.
-
-### Default channel (backward-compatible singleton)
-
-```ts
-import { channel } from '@/shared/channel'
-
-// Main: handle requests from renderer
-channel.onRequest('my:method', async (payload) => {
-  return { result: 'ok' }
-})
-
-// Renderer: send request and await response
-const result = await channel.request('my:method', payload)
-```
-
-### Channel (per-view independent channels)
-
-```ts
-import { Channel } from '@/shared/channel'
-
-const ch = new Channel()
-await ch.init({ webContentsId: view.webContents.id })
-ch.onRequest('ping', async () => 'pong')
-ch.destroy()
-```
-
-The `init()` method accepts an optional `expose` option (`true` by default). Set `expose: false` to skip `contextBridge.exposeInMainWorld`.
-
-## ViewManager
-
-`ViewManager` manages sub-windows as `WebContentsView` instances, supporting three modes:
-
-- **embedded** — attached to a parent `BrowserWindow` as a child view
-- **detached** — hosted in its own `BaseWindow`
-- **background** — offscreen rendering (`offscreen: true`), no window attachment
-
-```ts
-import { viewManager } from '@/main/viewManager'
-
-// Create a sub-window
-const viewId = await viewManager.createView({
-  url: 'https://example.com',
-  type: 'embedded',
-  parentWindow: win,
-  bounds: { x: 0, y: 0, width: 400, height: 300 },
-})
-
-// Lifecycle events
-viewManager.on('view-created', (id, state) => { ... })
-viewManager.on('view-ready', (id) => { ... })
-viewManager.on('view-destroyed', (id) => { ... })
-
-// Built-in channel communication
-await viewManager.requestTo(viewId, 'method', payload)
-await viewManager.broadcast('method', payload)
-viewManager.onAnyRequest('method', (viewId, payload) => { ... })
-
-// Cleanup
-viewManager.destroyView(viewId)
-```
-
-Each sub-window uses a dedicated preload script (`src/preload/view.ts`) with its own `Channel`.
-
-## Path Alias
-
-`@` maps to `src/`. Available in all processes (main, preload, renderer):
-
-```ts
-import { log } from '@/utils/log'
-import { channel } from '@/shared/channel'
-```
-
-## Project Structure
-
-```
-src/
-├── main/
-│   ├── index.ts              # App lifecycle entry
-│   ├── mainWindow.ts         # Main BrowserWindow creation
-│   ├── services/             # Main-process service implementations
-│   ├── tray/                 # System tray integration
-│   ├── updater/
-│   │   ├── index.ts          # Auto-update service
-│   │   └── types.ts          # Update types
-│   ├── viewManager/
-│   │   ├── index.ts          # ViewManager class + singleton export
-│   │   ├── managedView.ts    # ManagedView: WebContentsView + Channel wrapper
-│   │   └── types.ts          # Internal types (ManagedView interface, handler types)
-│   ├── windowManager/        # BrowserWindow management
-│   └── utils/
-│       └── paths.ts          # Runtime path helpers (preload, view-preload)
-├── preload/
-│   ├── index.ts              # Main window preload (exposes window.channel)
-│   └── view.ts               # Sub-window preload (separate Channel)
-├── renderer/
-│   ├── index.html
-│   ├── main.tsx              # React entry
-│   ├── App.tsx
-│   └── styles/
-├── shared/
-│   ├── channel/              # IPC channel implementation
-│   ├── serviceRegistry/      # Service registration and routing
-│   ├── services/             # Shared service API definitions
-│   ├── window.ts
-│   └── view.ts
-├── utils/
-│   ├── log/                  # Unified logger (electron-log wrapper)
-│   ├── serialize/            # Error/value serialization helpers
-│   ├── typedEmitter.ts       # Lightweight type-safe event emitter
-│   ├── env.ts                # Process environment helpers
-│   └── promise.ts
-├── __tests__/                # Unit/integration test suites
-│   └── infrastructure/       # Shared test setup, mocks and helpers
-├── vitePlugins/
-│   └── sourceFilePlugin.ts   # Vite plugin: injects __SOURCE_FILE__
-tests/
-└── e2e/                      # Playwright end-to-end tests
-scripts/
-├── build.mjs                 # Production build orchestrator
-└── dev.mjs                   # Dev launcher
-```
+- **React 18 + Tailwind CSS v4 + shadcn/ui** — 开箱即用的 UI 开发环境
+- **Zustand** — 轻量状态管理
