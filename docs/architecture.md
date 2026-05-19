@@ -7,7 +7,7 @@ See [AGENTS.md](../AGENTS.md) for a quick reference guide.
 Electron runs in 3 process types:
 
 - **main** — manages windows, views, tray, updater; entry at `src/main/index.ts`
-- **preload** — bridges main and renderer via `contextBridge`; scripts at `src/preload/`
+- **preload** — bridges main and renderer via `contextBridge`; entry at `src/preload/index.ts`
 - **renderer** — React SPA at `src/renderer/`
 
 ## Key Singletons
@@ -27,7 +27,7 @@ Electron runs in 3 process types:
 - **detached** — hosted in its own `BaseWindow`
 - **background** — offscreen rendering (`offscreen: true`), no window attachment
 
-Each sub-window uses its own preload (`src/preload/view.ts`) with an independent `Channel`.
+All views share a single preload script (`src/preload/index.ts`). Each view gets its own `Channel` instance at runtime.
 
 ## IPC Communication
 
@@ -85,9 +85,8 @@ src/
 │   ├── viewManager/      # WebContentsView management
 │   ├── windowManager/    # BrowserWindow management
 │   └── services/         # Service implementations (main process)
-├── preload/                # Preload scripts
-│   ├── index.ts          # Main window preload
-│   └── view.ts           # Sub-window preload (per-view Channel)
+├── preload/                # Preload script (shared by all views)
+│   └── index.ts          # Channel bridge via contextBridge
 ├── renderer/               # React SPA (dev only)
 ├── shared/                 # Shared types + infrastructure
 │   ├── channel/          # IPC channel (MessageChannelMain)

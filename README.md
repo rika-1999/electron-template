@@ -39,7 +39,7 @@ pnpm run dev
 
 ### 工具链
 
-- **Vite 多配置构建** — main / preload / view-preload / renderer 四个独立构建
+- **Vite 多配置构建** — main / preload / renderer 三个独立构建
 - **electron-builder 打包** — Windows NSIS 安装程序，支持跨平台
 - **Vitest 单元测试** — 三套测试环境（node / jsdom），完整 Electron mock
 - **Playwright E2E 测试** — 启动真实 Electron 进程验证

@@ -9,9 +9,7 @@ const __dirname = path.dirname(__filename);
 
 const isDev = process.env.NODE_ENV !== 'production';
 
-const preloadType = process.env.PRELOAD_TYPE || 'index';
 
-const entry = `src/preload/${preloadType}.ts`;
 
 export default defineConfig({
   plugins: [sourceFilePlugin()],
@@ -20,11 +18,11 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: entry,
+      entry: 'src/preload/index.ts',
       formats: ['cjs'],
       fileName: () => 'index.js',
     },
-    outDir: preloadType === 'index' ? 'dist/preload' : `dist/preload-${preloadType}`,
+    outDir: 'dist/preload',
     emptyOutDir: true,
     sourcemap: isDev,
     minify: !isDev,

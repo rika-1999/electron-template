@@ -10,7 +10,6 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const configs = [
   { name: 'main', config: 'vite.config.main.mts', env: {} },
   { name: 'preload', config: 'vite.config.preload.mts', env: {} },
-  { name: 'preload-view', config: 'vite.config.preload.mts', env: { PRELOAD_TYPE: 'view' } },
   { name: 'renderer', config: 'vite.config.renderer.mts', env: {} },
 ];
 

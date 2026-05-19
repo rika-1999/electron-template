@@ -23,7 +23,7 @@ async function main() {
   console.log('🚀 Starting development environment...\n');
 
   // Build main and preload (excluding renderer)
-  await run('node', ['scripts/build.mjs', 'main', 'preload', 'preload-view'], {
+  await run('node', ['scripts/build.mjs', 'main', 'preload'], {
     env: { ...process.env, NODE_ENV },
   });
 

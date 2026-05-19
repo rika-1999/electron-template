@@ -128,6 +128,9 @@ export const logManager = {
         mainLog.transports.console.format = formatWrapper;
       }
     }
+    if (process.env.PROCESS_TYPE === 'preload') {
+      await logSender().init();
+    }
   },
 };
 
