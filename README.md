@@ -2,6 +2,31 @@
 
 Electron + React + TypeScript 桌面应用脚手架，提供开箱即用的开发环境。
 
+## 使用此模板
+
+1. 点击仓库页面的 **"Use this template"** → **"Create a new repository"**
+2. Clone 你创建的新仓库
+3. 运行初始化脚本，按提示填写项目信息：
+
+```bash
+pnpm install
+node scripts/setup.mjs
+pnpm run dev
+```
+
+初始化脚本会自动替换以下占位符：
+
+| 提示项     | 占位符                 | 替换位置                                                   |
+| ---------- | ---------------------- | ---------------------------------------------------------- |
+| 项目名称   | `electron-template`    | `package.json`、`electron-builder.config.mjs`、`README.md` |
+| AppId      | `com.example.electron` | `electron-builder.config.mjs`                              |
+| 主窗口标题 | `Electron App`         | `src/renderer/index.html`                                  |
+| 作者       | `rika`                 | `package.json`                                             |
+| 描述       | _(已有默认值)_         | `package.json`                                             |
+| 仓库地址   | _(空)_                 | `package.json`                                             |
+
+> 别忘了替换 `build/icons/` 下的图标文件为你自己的应用图标。
+
 ## 快速开始
 
 ```bash
@@ -11,13 +36,13 @@ pnpm run dev
 
 ## 常用命令
 
-| 命令 | 说明 |
-| --- | --- |
-| `pnpm run dev` | 启动开发环境 |
-| `pnpm run build` | 生产构建 |
-| `pnpm run test` | 运行测试 |
-| `pnpm run lint -- --fix` | 代码检查与修复 |
-| `pnpm run package:win` | 打包 Windows 安装程序 |
+| 命令                     | 说明                  |
+| ------------------------ | --------------------- |
+| `pnpm run dev`           | 启动开发环境          |
+| `pnpm run build`         | 生产构建              |
+| `pnpm run test`          | 运行测试              |
+| `pnpm run lint -- --fix` | 代码检查与修复        |
+| `pnpm run package:win`   | 打包 Windows 安装程序 |
 
 ## 项目能力
 

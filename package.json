@@ -2,7 +2,9 @@
   "name": "electron-template",
   "version": "1.0.0",
   "description": "Electron + React + TypeScript desktop application",
+  "author": "",
   "license": "MIT",
+  "repository": "",
   "main": "dist/main/index.js",
   "packageManager": "pnpm@9.0.0",
   "scripts": {
