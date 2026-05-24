@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import { sourceFilePlugin } from './src/vitePlugins/sourceFilePlugin';
 import { fileURLToPath } from 'node:url';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,7 +21,17 @@ export default defineConfig({
     outDir: '../../dist/renderer',
     emptyOutDir: true,
   },
-  plugins: [react(), tailwindcss(), sourceFilePlugin()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    sourceFilePlugin(),
+    visualizer({
+      open: true, // 构建完成后自动打开浏览器
+      filename: 'stats.html', // 生成的分析文件名
+      gzipSize: true,
+      brotliSize: true,
+    }),
+  ],
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     'process.env.PROCESS_TYPE': JSON.stringify('renderer') as 'main' | 'preload' | 'renderer',

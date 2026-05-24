@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync, unlinkSync } from 'node:fs'
+import { readFileSync, writeFileSync, unlinkSync, rmSync, existsSync } from 'node:fs'
 import { createInterface } from 'node:readline'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -29,6 +29,96 @@ function prompt(rl, question, defaultVal) {
   })
 }
 
+function removeLines(filePath, patterns) {
+  const content = readFileSync(filePath, 'utf-8')
+  const lines = content.split('\n')
+  const filtered = lines.filter((line) => !patterns.some((p) => p.test(line)))
+  writeFileSync(filePath, filtered.join('\n'))
+}
+
+function replaceInFile(filePath, oldStr, newStr) {
+  const content = readFileSync(filePath, 'utf-8')
+  writeFileSync(filePath, content.replace(oldStr, newStr))
+}
+
+function removeNativeModule() {
+  console.log('\n🗑️  移除 native 模块...\n')
+
+  const deleteFiles = [
+    'native/package.json',
+    'native/Cargo.toml',
+    'native/build.rs',
+    'native/src/lib.rs',
+    'src/main/nativeExample.ts',
+    'src/__tests__/main/nativeExample.test.ts',
+    'rust-toolchain.toml',
+    'pnpm-workspace.yaml',
+  ]
+  for (const file of deleteFiles) {
+    const filePath = join(projectDir, file)
+    if (existsSync(filePath)) {
+      unlinkSync(filePath)
+      console.log(`  ✓ 删除 ${file}`)
+    }
+  }
+
+  const deleteDirs = [
+    'native/src',
+    'native/target',
+    'native',
+  ]
+  for (const dir of deleteDirs) {
+    const dirPath = join(projectDir, dir)
+    if (existsSync(dirPath)) {
+      rmSync(dirPath, { recursive: true, force: true })
+    }
+  }
+
+  // package.json: remove native dependency and build:native script
+  replaceInFile(
+    join(projectDir, 'package.json'),
+    '"build": "pnpm run build:native && cross-env NODE_ENV=production node scripts/build.mjs",',
+    '"build": "cross-env NODE_ENV=production node scripts/build.mjs",',
+  )
+  removeLines(join(projectDir, 'package.json'), [
+    /"native": "workspace:\*",/,
+    /"build:native": "pnpm --filter native run build",/,
+  ])
+  console.log('  ✓ package.json')
+
+  // vite.config.main.mts: remove 'native' from external
+  replaceInFile(
+    join(projectDir, 'vite.config.main.mts'),
+    "external: ['electron', 'native',",
+    "external: ['electron',",
+  )
+  console.log('  ✓ vite.config.main.mts')
+
+  // electron-builder.config.mjs: remove node_modules/native/**
+  replaceInFile(
+    join(projectDir, 'electron-builder.config.mjs'),
+    "files: ['dist/**/*', 'package.json', '!node_modules/**', 'node_modules/native/index.cjs', 'node_modules/native/*.node'],",
+    "files: ['dist/**/*', 'package.json', '!node_modules/**'],",
+  )
+  console.log('  ✓ electron-builder.config.mjs')
+
+  // .github/workflows/ci.yml: remove Rust steps
+  const ciPath = join(projectDir, '.github/workflows/ci.yml')
+  let ciContent = readFileSync(ciPath, 'utf-8')
+  ciContent = ciContent.replace(/\n      - name: Setup Rust\n        uses: dtolnay\/rust-toolchain@stable\n/g, '\n')
+  writeFileSync(ciPath, ciContent)
+  console.log('  ✓ .github/workflows/ci.yml')
+
+  // .gitignore: remove native entries
+  removeLines(join(projectDir, '.gitignore'), [
+    /^native\/target\/$/,
+    /^native\/\*\.node$/,
+    /^native\/index\.cjs$/,
+    /^native\/index\.d\.ts$/,
+  ])
+  console.log('  ✓ .gitignore')
+}
+
 async function main() {
   console.log('\n🚀 Electron Template Setup\n')
 
@@ -40,6 +130,7 @@ async function main() {
   const author = await prompt(rl, '作者', '')
   const description = await prompt(rl, '项目描述', '')
   const repository = await prompt(rl, '仓库地址', '')
+  const useNative = await prompt(rl, '使用 Rust native 模块示例 (y/n)', 'y')
 
   rl.close()
 
@@ -64,6 +155,10 @@ async function main() {
 
     writeFileSync(filePath, content)
     console.log(`  ✓ ${file}`)
+  }
+
+  if (useNative.toLowerCase() !== 'y') {
+    removeNativeModule()
   }
 
   console.log('\n✅ 完成！运行 pnpm install && pnpm run dev 开始开发\n')

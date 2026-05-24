@@ -36,7 +36,7 @@ export default defineConfig({
     sourcemap: isDev,
     minify: !isDev,
     rollupOptions: {
-      external: ['electron', ...builtinModules, ...builtinModules.map((m) => `node:${m}`)],
+      external: ['electron', 'native', ...builtinModules, ...builtinModules.map((m) => `node:${m}`)],
       output: {
         dynamicImportInCjs: false,
         inlineDynamicImports: true,

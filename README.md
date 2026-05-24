@@ -16,14 +16,15 @@ pnpm run dev
 
 初始化脚本会自动替换以下占位符：
 
-| 提示项     | 占位符                 | 替换位置                                                   |
-| ---------- | ---------------------- | ---------------------------------------------------------- |
-| 项目名称   | `electron-template`    | `package.json`、`electron-builder.config.mjs`、`README.md` |
-| AppId      | `com.example.electron` | `electron-builder.config.mjs`                              |
-| 主窗口标题 | `Electron App`         | `src/renderer/index.html`                                  |
-| 作者       | `rika`                 | `package.json`                                             |
-| 描述       | _(已有默认值)_         | `package.json`                                             |
-| 仓库地址   | _(空)_                 | `package.json`                                             |
+| 提示项       | 占位符                 | 替换位置                                                   |
+| ------------ | ---------------------- | ---------------------------------------------------------- |
+| 项目名称     | `electron-template`    | `package.json`、`electron-builder.config.mjs`、`README.md` |
+| AppId        | `com.example.electron` | `electron-builder.config.mjs`                              |
+| 主窗口标题   | `Electron App`         | `src/renderer/index.html`                                  |
+| 作者         | _(空)_                 | `package.json`                                             |
+| 描述         | _(已有默认值)_         | `package.json`                                             |
+| 仓库地址     | _(空)_                 | `package.json`                                             |
+| Rust native  | _(y/n，默认 y)_        | 选择 n 时自动移除所有 native 模块相关文件和配置             |
 
 > 别忘了替换 `build/icons/` 下的图标文件为你自己的应用图标。
 
@@ -66,9 +67,11 @@ pnpm run dev
 
 - **Vite 多配置构建** — main / preload / renderer 三个独立构建
 - **electron-builder 打包** — Windows NSIS 安装程序，支持跨平台
+- **Rust native 模块** — @napi-rs 集成示例，pnpm workspace 管理，含单元测试
 - **Vitest 单元测试** — 三套测试环境（node / jsdom），完整 Electron mock
 - **Playwright E2E 测试** — 启动真实 Electron 进程验证
 - **ESLint + Prettier** — 代码规范与格式化
+- **多平台 CI** — GitHub Actions 三平台构建验证（check / build / e2e）
 
 ### 前端
 

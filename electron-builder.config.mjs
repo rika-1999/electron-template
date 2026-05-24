@@ -7,7 +7,13 @@ export default {
   },
   icon: 'build/icons/app/icon.png',
   asar: false,
-  files: ['dist/**/*', 'package.json', '!node_modules/**'],
+  files: [
+    'dist/**/*',
+    'package.json',
+    '!node_modules/**',
+    'node_modules/native/index.cjs',
+    'node_modules/native/*.node',
+  ],
   extraMetadata: {
     main: 'dist/main/index.js',
   },
@@ -51,4 +57,4 @@ export default {
     url: process.env.UPDATE_SERVER_URL ?? 'http://localhost:8888',
     updaterCacheDirName: 'electron-updater',
   },
-}
+};
