@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/renderer/components/ui/button';
 import { useCounterStore } from '../../stores/counterStore';
 import { counterMainApi } from '@/shared/services';
 
