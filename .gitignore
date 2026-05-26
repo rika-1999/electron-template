@@ -14,3 +14,4 @@ native/target/
 native/*.node
 native/index.cjs
 native/index.d.ts
+stats.html
