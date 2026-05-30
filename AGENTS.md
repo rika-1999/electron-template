@@ -66,6 +66,7 @@
 - **`@Singleton()` 装饰器** (`src/shared/utils/singleton.ts`): 进程内单例，支持按进程类型限制
 - **`Channel` 类** (`src/shared/channel/`): MessagePort IPC 封装，类型安全双向通信
 - **`ServiceRegistry`** (`src/shared/serviceRegistry/`): 服务注册/发现/RPC，`defineApi()` + `implementService()`
+  - **⚠️ 所有 API 抽象类必须声明 `static apiName = 'ClassName'`**，作为跨进程 IPC 路由的服务名标识。未声明时生产构建 minify 会导致类名混淆，跨进程服务调用失败
 - **`WindowManager`** (`src/main/windowManager/`): 多窗口生命周期，macOS 关闭隐藏到托盘
 - **`ViewManager`** (`src/main/viewManager/`): WebContentsView 管理，内置通道通信和广播
 
