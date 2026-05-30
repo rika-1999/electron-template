@@ -1,5 +1,5 @@
 import React from 'react';
-import { logger } from '@/utils/log';
+import { logger } from '@/shared/utils/log';
 import { Counter } from './components/Counter';
 
 const log = logger(__SOURCE_FILE__);

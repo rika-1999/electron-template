@@ -1,7 +1,7 @@
 import { ChannelApiImpl, type Port as PortType } from './impl';
 import type { ChannelAPI, InitOptions } from './types';
-import { Singleton } from '@/utils/singleton';
-import { logger } from '@/utils/log';
+import { Singleton } from '@/shared/utils/singleton';
+import { logger } from '@/shared/utils/log';
 import { portManager } from './portManager';
 
 const log = logger('channel');

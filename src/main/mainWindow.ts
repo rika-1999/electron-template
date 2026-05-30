@@ -3,10 +3,10 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { windowManager } from './windowManager';
 import { viewManager } from './viewManager';
-import { isDev } from '@/utils/env';
+import { isDev } from '@/shared/utils/env';
 import { paths } from './utils/paths';
 import { channel } from '@/shared/channel';
-import { logger } from '@/utils/log';
+import { logger } from '@/shared/utils/log';
 
 const log = logger(__SOURCE_FILE__);
 

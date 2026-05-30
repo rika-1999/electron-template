@@ -1,5 +1,5 @@
 import { BaseWindow, app } from 'electron';
-import { TypedEmitter } from '@/utils/typedEmitter';
+import { TypedEmitter } from '@/shared/utils/typedEmitter';
 import type { WindowState, WindowOptions, ManagedWindowEventMap } from '@/shared/window';
 import type { ManagedWindow as IManagedWindow } from './types';
 

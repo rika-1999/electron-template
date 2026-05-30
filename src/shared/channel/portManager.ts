@@ -1,5 +1,5 @@
-import { Singleton } from '@/utils/singleton';
-import { logger } from '@/utils/log';
+import { Singleton } from '@/shared/utils/singleton';
+import { logger } from '@/shared/utils/log';
 import type { Port as PortType } from './impl';
 
 const log = logger(__SOURCE_FILE__);

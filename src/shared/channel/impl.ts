@@ -1,4 +1,4 @@
-import { deserialize, serialize } from '@/utils/serialize';
+import { deserialize, serialize } from '@/shared/utils/serialize';
 import { ChannelTimeoutError } from './error';
 import type { ChannelMessage, ChannelRequest, ChannelResponse, Handler } from './types';
 

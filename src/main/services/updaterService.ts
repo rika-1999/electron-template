@@ -1,6 +1,6 @@
 import { UpdaterApi } from '@/shared/services';
 import { autoUpdater } from 'electron-updater';
-import { Singleton } from '@/utils/singleton';
+import { Singleton } from '@/shared/utils/singleton';
 
 @Singleton()
 class UpdaterService extends UpdaterApi {

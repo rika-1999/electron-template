@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Singleton } from '@/utils/singleton';
+import { Singleton } from '@/shared/utils/singleton';
 
 describe('Singleton decorator (preload process)', () => {
   it('should return the same instance for multiple new calls', () => {

@@ -1,5 +1,5 @@
 import type { LogFunctions, PathVariables, LogMessage as ElectronLogMessage } from 'electron-log';
-import { serialize } from '@/utils/serialize';
+import { serialize } from '@/shared/utils/serialize';
 import { logSender } from './logSender';
 import type { LogLevel, LogContext } from './types';
 

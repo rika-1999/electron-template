@@ -1,4 +1,4 @@
-import { Singleton } from '@/utils/singleton';
+import { Singleton } from '@/shared/utils/singleton';
 
 const SERVICE_METADATA_SYMBOL = Symbol('__serviceMetadata__');
 

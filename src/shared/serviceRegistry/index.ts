@@ -3,7 +3,7 @@ import type { ApiType } from './apiDefinitions';
 import type { ServiceInfo } from './types';
 import { apiDefinitions } from './apiDefinitions';
 export { ServiceTimeoutError } from './error';
-import { Singleton } from '@/utils/singleton';
+import { Singleton } from '@/shared/utils/singleton';
 import { serviceMetadataRegistry } from './serviceMetadataRegistry';
 
 @Singleton()

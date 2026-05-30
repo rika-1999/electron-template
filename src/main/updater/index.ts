@@ -1,5 +1,5 @@
 import { autoUpdater } from 'electron-updater';
-import { logger } from '@/utils/log';
+import { logger } from '@/shared/utils/log';
 import type { UpdateConfig, UpdateProgressInfo } from './types';
 
 const log = logger(__SOURCE_FILE__);

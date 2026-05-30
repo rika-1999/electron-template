@@ -1,10 +1,10 @@
 import { app } from 'electron';
-import { logManager } from '@/utils/log';
+import { logManager } from '@/shared/utils/log';
 import { initUpdater } from './updater';
 import { appTray } from './tray';
 import { createMainWindow } from './mainWindow';
 import { registerMainServices } from './services';
-import { serialize } from '@/utils/serialize';
+import { serialize } from '@/shared/utils/serialize';
 import { windowManager } from './windowManager';
 import { viewManager } from './viewManager';
 

@@ -1,5 +1,5 @@
 import { CounterRendererApi } from '@/shared/services';
-import { Singleton } from '@/utils/singleton';
+import { Singleton } from '@/shared/utils/singleton';
 import { useCounterStore } from '../stores/counterStore';
 
 @Singleton()

@@ -1,5 +1,5 @@
 import { channel } from '@/shared/channel';
-import { logManager, log } from '@/utils/log';
+import { logManager, log } from '@/shared/utils/log';
 
 async function main() {
   await channel.init();

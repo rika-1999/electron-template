@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { AsyncifyFunctions } from '@/utils/type';
+import type { AsyncifyFunctions } from '@/shared/utils/type';
 
 describe('AsyncifyFunctions', () => {
   it('should convert sync functions to async', () => {

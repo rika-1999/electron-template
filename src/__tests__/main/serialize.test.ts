@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { deserialize, isPrimitive, serialize } from '@/utils/serialize';
+import { deserialize, isPrimitive, serialize } from '@/shared/utils/serialize';
 
 describe('isPrimitive', () => {
   it('should return true for null', () => {

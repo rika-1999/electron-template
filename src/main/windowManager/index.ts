@@ -1,7 +1,7 @@
-import { TypedEmitter } from '@/utils/typedEmitter';
+import { TypedEmitter } from '@/shared/utils/typedEmitter';
 import { ManagedWindow } from './managedWindow';
 import type { WindowOptions, WindowState, WindowEventMap } from '@/shared/window';
-import { Singleton } from '@/utils/singleton';
+import { Singleton } from '@/shared/utils/singleton';
 
 function generateWindowId(): string {
   return `win-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

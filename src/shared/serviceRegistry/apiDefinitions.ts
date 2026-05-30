@@ -1,5 +1,5 @@
 import { ChannelTimeoutError, type ChannelLike } from '@/shared/channel';
-import { AsyncifyFunctions } from '@/utils/type';
+import { AsyncifyFunctions } from '@/shared/utils/type';
 import { ServiceTimeoutError } from './error';
 import { serviceMetadataRegistry } from './serviceMetadataRegistry';
 

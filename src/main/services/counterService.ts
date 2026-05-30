@@ -1,5 +1,5 @@
 import { CounterMainApi, CounterRendererApi } from '@/shared/services';
-import { Singleton } from '@/utils/singleton';
+import { Singleton } from '@/shared/utils/singleton';
 import { counterRendererApi } from '@/shared/services';
 import { channel } from '@/shared/channel';
 
