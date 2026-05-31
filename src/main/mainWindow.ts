@@ -55,7 +55,6 @@ export async function createMainWindow() {
     log.info('Window resized - bounds:', bounds, 'contentBounds:', contentBounds);
     view.webContentsView.setBounds({ ...contentBounds, x: 0, y: 0 });
   });
-  view.toggleDevTools();
 
   log.info('Main window created successfully');
 }
